@@ -1,0 +1,186 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "macOS-activity-tracker"
+version = "1.0.0"
+description = "A lightweight macOS application usage tracking tool with AFK detection and data synchronization"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Wojciech Tyziniec"},
+]
+maintainers = [
+    {name = "Wojciech Tyziniec"},
+]
+keywords = [
+    "macos",
+    "activity-tracker",
+    "time-tracking",
+    "productivity",
+    "application-monitoring",
+    "menu-bar",
+]
+classifiers = [
+    "Development Status :: 1 - Stable",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Desktop Environment :: Window Managers",
+    "Topic :: Office/Business :: Scheduling",
+    "Topic :: System :: Monitoring",
+    "Topic :: Utilities",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "pyobjc-framework-Cocoa>=10.1",
+    "pyobjc-framework-Quartz>=10.1",
+    "psutil>=5.9.0",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "types-requests>=2.31.0",
+    "types-psutil>=5.9.0",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+]
+lint = [
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+activity-tracker = "activity_tracker.core:main"
+activity-tracker-menu = "activity_tracker.menu_bar:main"
+activity-tracker-daemon = "activity_tracker.daemon:main"
+activity-tracker-sync = "activity_tracker.sync:main"
+
+[project.urls]
+Homepage = "https://github.com/wtznc/macOS-activity-tracker"
+Repository = "https://github.com/wtznc/macOS-activity-tracker"
+Issues = "https://github.com/wtznc/macOS-activity-tracker/issues"
+Changelog = "https://github.com/wtznc/macOS-activity-tracker/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+activity_tracker = ["*.plist"]
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# isort configuration
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["activity_tracker"]
+skip_glob = ["**/migrations/*"]
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = false
+warn_no_return = true
+warn_unreachable = false
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "AppKit.*",
+    "Foundation.*",
+    "Quartz.*",
+    "psutil.*",
+    "objc.*",
+    "activity_tracker_legacy",
+]
+ignore_missing_imports = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=activity_tracker",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src/activity_tracker"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
