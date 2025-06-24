@@ -23,7 +23,7 @@ keywords = [
     "menu-bar",
 ]
 classifiers = [
-    "Development Status :: 1 - Stable",
+    "Development Status :: 1 - Release",
     "Intended Audience :: End Users/Desktop",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
