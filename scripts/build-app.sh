@@ -58,7 +58,7 @@ if [ ! -d "build_venv" ]; then
     python3 -m venv build_venv
     source build_venv/bin/activate
     pip install --upgrade pip
-    pip install -e .
+    pip install .
 else
     source build_venv/bin/activate
 fi
@@ -129,13 +129,10 @@ APP_DIR="$(dirname "$SCRIPT_DIR")"
 RESOURCES_DIR="$APP_DIR/Resources"
 FRAMEWORKS_DIR="$APP_DIR/Frameworks"
 
-# Set up Python environment
-export PYTHONPATH="$RESOURCES_DIR/src:$PYTHONPATH"
-
 # Use system Python
 PYTHON="python3"
 
-# Add bundled dependencies to Python path
+# Set up Python environment - bundled dependencies first, then source code, then system
 export PYTHONPATH="$RESOURCES_DIR/site-packages:$RESOURCES_DIR/src:$PYTHONPATH"
 
 # Change to resources directory
