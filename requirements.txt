@@ -1,0 +1,4 @@
+pyobjc-framework-Cocoa==10.1
+pyobjc-framework-Quartz==10.1
+psutil==5.9.6
+requests==2.31.0
