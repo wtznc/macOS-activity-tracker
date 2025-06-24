@@ -52,14 +52,22 @@ mkdir -p "$APP_DIR/Contents/MacOS"
 mkdir -p "$APP_DIR/Contents/Resources"
 mkdir -p "$APP_DIR/Contents/Frameworks"
 
-# Copy Python environment
-print_step "Copying Python environment..."
-if [ -d "venv" ]; then
-    cp -R venv "$APP_DIR/Contents/Frameworks/"
-    # Clean up cache files
-    find "$APP_DIR/Contents/Frameworks/venv" -name "*.pyc" -delete
-    find "$APP_DIR/Contents/Frameworks/venv" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+# Create and copy Python environment
+print_step "Creating Python environment..."
+if [ ! -d "build_venv" ]; then
+    python3 -m venv build_venv
+    source build_venv/bin/activate
+    pip install --upgrade pip
+    pip install -e .
+else
+    source build_venv/bin/activate
 fi
+
+print_step "Copying Python environment..."
+cp -R build_venv "$APP_DIR/Contents/Frameworks/venv"
+# Clean up cache files
+find "$APP_DIR/Contents/Frameworks/venv" -name "*.pyc" -delete
+find "$APP_DIR/Contents/Frameworks/venv" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 
 # Copy source code
 print_step "Copying source code..."
@@ -128,8 +136,8 @@ fi
 # Change to resources directory
 cd "$RESOURCES_DIR"
 
-# Launch the menu bar app directly without using -m to avoid import conflicts
-exec "$PYTHON" "$RESOURCES_DIR/src/activity_tracker/menu_bar.py"
+# Launch using the CLI entry point
+exec "$PYTHON" -m activity_tracker.menu_bar
 EOF
 
 chmod +x "$APP_DIR/Contents/MacOS/ActivityTracker"
