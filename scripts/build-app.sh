@@ -52,8 +52,8 @@ mkdir -p "$APP_DIR/Contents/MacOS"
 mkdir -p "$APP_DIR/Contents/Resources"
 mkdir -p "$APP_DIR/Contents/Frameworks"
 
-# Create and copy Python environment
-print_step "Creating Python environment..."
+# Install dependencies and copy only site-packages
+print_step "Installing dependencies..."
 if [ ! -d "build_venv" ]; then
     python3 -m venv build_venv
     source build_venv/bin/activate
@@ -63,11 +63,17 @@ else
     source build_venv/bin/activate
 fi
 
-print_step "Copying Python environment..."
-cp -R build_venv "$APP_DIR/Contents/Frameworks/venv"
+print_step "Copying dependencies..."
+# Find Python version
+PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+SITE_PACKAGES="build_venv/lib/python$PYTHON_VERSION/site-packages"
+
+# Copy only the site-packages (dependencies)
+cp -R "$SITE_PACKAGES" "$APP_DIR/Contents/Resources/"
+
 # Clean up cache files
-find "$APP_DIR/Contents/Frameworks/venv" -name "*.pyc" -delete
-find "$APP_DIR/Contents/Frameworks/venv" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+find "$APP_DIR/Contents/Resources/site-packages" -name "*.pyc" -delete
+find "$APP_DIR/Contents/Resources/site-packages" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 
 # Copy source code
 print_step "Copying source code..."
@@ -126,12 +132,11 @@ FRAMEWORKS_DIR="$APP_DIR/Frameworks"
 # Set up Python environment
 export PYTHONPATH="$RESOURCES_DIR/src:$PYTHONPATH"
 
-# Use bundled Python if available, otherwise system Python
-if [ -d "$FRAMEWORKS_DIR/venv" ]; then
-    PYTHON="$FRAMEWORKS_DIR/venv/bin/python"
-else
-    PYTHON="python3"
-fi
+# Use system Python
+PYTHON="python3"
+
+# Add bundled dependencies to Python path
+export PYTHONPATH="$RESOURCES_DIR/site-packages:$RESOURCES_DIR/src:$PYTHONPATH"
 
 # Change to resources directory
 cd "$RESOURCES_DIR"
