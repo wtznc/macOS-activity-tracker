@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "macOS-activity-tracker"
-version = "1.0.11"
+version = "1.0.12"
 description = "A lightweight macOS application usage tracking tool with AFK detection and data synchronization"
 readme = "README.md"
 license = {file = "LICENSE"}
