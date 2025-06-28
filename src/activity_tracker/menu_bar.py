@@ -29,13 +29,17 @@ except ImportError:
     exit(1)
 
 try:
-    from .core import ActivityTracker
-    from .sync import SyncManager
+    from activity_tracker.core import ActivityTracker
+    from activity_tracker.sync import SyncManager
 except ImportError:
-    # If running as script, add parent directory to path
-    sys.path.insert(0, str(Path(__file__).parent))
-    from core import ActivityTracker  # type: ignore[import,no-redef]
-    from sync import SyncManager  # type: ignore[import,no-redef]
+    try:
+        from .core import ActivityTracker
+        from .sync import SyncManager
+    except ImportError:
+        # If running as script, add parent directory to path
+        sys.path.insert(0, str(Path(__file__).parent))
+        from core import ActivityTracker  # type: ignore[import,no-redef]
+        from sync import SyncManager  # type: ignore[import,no-redef]
 
 
 class ActivityTrackerMenuBarDelegate(NSObject):

@@ -13,7 +13,7 @@ src_path = project_root / 'src'
 block_cipher = None
 
 a = Analysis(
-    ['src/activity_tracker/__main__.py'],
+    ['src/activity_tracker/menu_bar.py'],
     pathex=[str(src_path)],
     binaries=[],
     datas=[
