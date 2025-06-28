@@ -114,28 +114,34 @@ class ActivityTracker:
         self._save_final_data(current_app, start_time)
         self.logger.log_tracking_stop()
 
-    def _check_save_interval(self, current_app: Optional[str], start_time: float) -> float:
+    def _check_save_interval(
+        self, current_app: Optional[str], start_time: float
+    ) -> float:
         """Check if we need to save data (every minute). Returns updated start_time."""
         now = datetime.now()
         if now.minute != self.last_check_time.minute:
             # Get and clear existing session data
             existing_session_data = self.monitor.clear_session_data()
-            
+
             # Calculate time attribution for current app
             time_since_boundary = 0.0
             if current_app:
-                time_since_boundary = self._calculate_time_in_current_minute(start_time, self.last_check_time)
-                time_since_boundary = max(0.0, min(time_since_boundary, 60.0))  # Bound to [0, 60]
-            
+                time_since_boundary = self._calculate_time_in_current_minute(
+                    start_time, self.last_check_time
+                )
+                time_since_boundary = max(
+                    0.0, min(time_since_boundary, 60.0)
+                )  # Bound to [0, 60]
+
             # Create data for this minute with proper time bounds
             minute_bounded_data = {}
-            
+
             # Include existing session data but bound it to prevent overflow
             last_boundary_timestamp = self.last_check_time.timestamp()
             current_timestamp = time.time()
             max_possible_time = current_timestamp - last_boundary_timestamp
             max_reasonable_time = min(60.0, max_possible_time)
-            
+
             for app_name, duration in existing_session_data.items():
                 # For non-current apps, use existing duration but cap it
                 if app_name != current_app:
@@ -146,9 +152,13 @@ class ActivityTracker:
                     # For current app, replace with time since boundary
                     if time_since_boundary > 0:
                         minute_bounded_data[app_name] = time_since_boundary
-            
+
             # Add current app if not already processed
-            if current_app and current_app not in minute_bounded_data and time_since_boundary > 0:
+            if (
+                current_app
+                and current_app not in minute_bounded_data
+                and time_since_boundary > 0
+            ):
                 minute_bounded_data[current_app] = time_since_boundary
 
             # Final safety check: ensure total doesn't exceed reasonable bounds
@@ -156,8 +166,10 @@ class ActivityTracker:
             if total_time > 65:  # Allow slight overflow for edge cases
                 # Proportionally scale down all durations
                 scale_factor = 60.0 / total_time
-                minute_bounded_data = {app: duration * scale_factor 
-                                     for app, duration in minute_bounded_data.items()}
+                minute_bounded_data = {
+                    app: duration * scale_factor
+                    for app, duration in minute_bounded_data.items()
+                }
                 total_time = sum(minute_bounded_data.values())
 
             # Save the properly bounded data
@@ -167,14 +179,16 @@ class ActivityTracker:
             self.last_check_time = now
             # Reset start_time to prevent accumulation across minute boundaries
             return time.time()
-        
+
         return start_time
-    
-    def _calculate_time_in_current_minute(self, start_time: float, last_boundary: datetime) -> float:
+
+    def _calculate_time_in_current_minute(
+        self, start_time: float, last_boundary: datetime
+    ) -> float:
         """Calculate how much time should be attributed to the current minute only."""
         current_time = time.time()
         last_boundary_timestamp = last_boundary.timestamp()
-        
+
         # If start_time is before the last minute boundary, only count time since boundary
         if start_time < last_boundary_timestamp:
             return current_time - last_boundary_timestamp
