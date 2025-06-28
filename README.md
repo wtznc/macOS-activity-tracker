@@ -14,43 +14,50 @@ A lightweight, privacy-focused macOS application that tracks your application us
 - **🚀 Performance Modes**: Fast mode (app names only) vs. detailed mode (full window titles)
 - **🔄 Data Synchronization**: Built-in sync capabilities to remote endpoints
 - **🛡️ Privacy First**: All data stays local unless explicitly synced
+- **📱 Self-Contained**: PyInstaller-based app bundles with no external dependencies
 
 ## 📦 Installation
 
-### Quick Install (Recommended)
+### Download Release (Recommended)
+
+Download the latest DMG from [GitHub Releases](https://github.com/wtznc/macOS-activity-tracker/releases):
+
+1. **Download** the `ActivityTracker-{version}.dmg` file
+2. **Open** the DMG and drag "Activity Tracker.app" to Applications folder
+3. **Launch** the app from Applications or Launchpad
+4. **Grant** Accessibility permissions when prompted
+
+The app is **self-contained** - no Python installation required!
+
+### Build from Source
 
 ```bash
-# Clone and run the all-in-one setup
+# Clone the repository
 git clone https://github.com/wtznc/macOS-activity-tracker.git
 cd macOS-activity-tracker
-./setup.sh all
+
+# Install build dependencies
+make install-build
+
+# Build the macOS app bundle
+make app
+
+# Find your app in dist/Activity Tracker.app
 ```
 
-This will:
-- ✅ Install the Activity Tracker package
-- ✅ Create a macOS app bundle
-- ✅ Setup auto-start on login
-- ✅ Launch the menu bar app
-
-### Alternative Installation Options
+### Developer Installation
 
 ```bash
-# Just install the package
-./setup.sh install
+# Clone and install for development
+git clone https://github.com/wtznc/macOS-activity-tracker.git
+cd macOS-activity-tracker
 
-# Just create the app bundle
-./setup.sh app
+# Install in development mode
+make install-dev
 
-# Just setup auto-start
-./setup.sh autostart
-
-# Launch manually
-./setup.sh launch
+# Run directly from source
+python -m activity_tracker.menu_bar
 ```
-
-### Download Release
-
-Download the latest release from [GitHub Releases](https://github.com/wtznc/macOS-activity-tracker/releases) and drag the app to your Applications folder.
 
 ## 🚀 Usage
 
@@ -88,7 +95,7 @@ activity-tracker-sync status
 
 Activity data is stored locally in JSON format at:
 ```
-~/Library/Application Support/ActivityTracker/data/
+~/Library/Application Support/ActivityTracker/
 ```
 
 ### Example Data Format
@@ -158,6 +165,11 @@ Configure via menu bar app settings or edit:
 
 ## 📋 Requirements
 
+### For App Bundle Users
+- **macOS**: 10.14 (Mojave) or later  
+- **Permissions**: Accessibility access for window detection
+
+### For Development
 - **macOS**: 10.14 (Mojave) or later
 - **Python**: 3.9 or later
 - **Permissions**: Accessibility access for window detection
@@ -167,32 +179,43 @@ Configure via menu bar app settings or edit:
 ### Permission Denied
 Grant Accessibility permissions in System Preferences > Security & Privacy > Privacy > Accessibility
 
-### Installation Issues
-```bash
-# Reinstall pyobjc frameworks
-pip3 install --upgrade pyobjc-framework-Cocoa pyobjc-framework-Quartz
-```
+### App Won't Start
+If the app bundle doesn't launch:
+1. **Check Permissions**: Grant Accessibility access in System Preferences
+2. **Re-download**: Download fresh DMG from GitHub Releases  
+3. **Build from Source**: Use `make app` to create new bundle
 
-### Path Issues
+### Development Issues
 ```bash
-# Add to your shell profile
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
+# Reinstall development dependencies
+make install-dev
+
+# Rebuild the app bundle
+make clean && make app
+
+# Install PyInstaller dependencies
+make install-build
 ```
 
 ## 🔧 Development
 
 ```bash
 # Setup development environment
-git clone https://github.com/wtznc/macos-activity-tracker.git
-cd macos-activity-tracker
+git clone https://github.com/wtznc/macOS-activity-tracker.git
+cd macOS-activity-tracker
 make install-dev
+
+# Build the app bundle
+make app
 
 # Run tests
 make test
 
 # Format code
 make format
+
+# Install build dependencies (PyInstaller)
+make install-build
 ```
 
 ## 📜 License
