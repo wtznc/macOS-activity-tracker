@@ -80,7 +80,8 @@ class ActivityMonitor:
                 idle_time = self.idle_detector.get_system_idle_time()
                 idle_start_timestamp = current_time - idle_time
                 active_duration = idle_start_timestamp - start_time
-                if active_duration > 0:
+                # Only record reasonable durations to prevent data corruption
+                if 0 < active_duration <= 120:  # Max 2 minutes to catch edge cases
                     self.session_tracker.add_activity(current_app, active_duration)
             return current_time
         else:
@@ -97,10 +98,13 @@ class ActivityMonitor:
             if self.app_change_time is None:
                 self.app_change_time = current_time
             elif current_time - self.app_change_time >= self.debounce_delay:
-                # App switch confirmed
+                # App switch confirmed - record duration for previous app
+                # Note: Duration will be properly bounded by minute boundaries in core.py
                 if current_app and current_app != active_app:
                     duration = current_time - start_time
-                    self.session_tracker.add_activity(current_app, duration)
+                    # Only record if duration is reasonable (not negative, not excessive)
+                    if 0 < duration <= 120:  # Max 2 minutes to catch edge cases
+                        self.session_tracker.add_activity(current_app, duration)
 
                 self.last_stable_app = active_app
                 self.app_change_time = None
