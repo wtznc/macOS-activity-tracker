@@ -93,6 +93,35 @@ activity-tracker --idle-threshold 120
 activity-tracker-sync status
 ```
 
+#### Data Synchronization (Development Only)
+
+```bash
+# Check sync status
+activity-tracker-sync status
+
+# Sync all pending data
+activity-tracker-sync sync
+
+# View current device name
+activity-tracker-sync status | grep Device
+```
+
+**Sync Data Format**: Data is grouped by hour and includes device identification:
+
+```json
+{
+  "timestamp": "2024-01-15T14:00:00Z",
+  "device": "MacBook-Pro",
+  "data": {
+    "applications": {
+      "Code - main.py — project": 1800.5,
+      "Safari - Documentation": 1200.3
+    },
+    "total_time": 3600.8
+  }
+}
+```
+
 ## 📊 Data Storage
 
 Activity data is stored locally in JSON format at:
@@ -110,36 +139,6 @@ Activity data is stored locally in JSON format at:
 }
 ```
 
-## 🔄 Data Synchronization
-
-```bash
-# Check sync status
-activity-tracker-sync status
-
-# Sync all pending data
-activity-tracker-sync sync
-
-# View current device name
-activity-tracker-sync status | grep Device
-```
-
-### Sync Data Format
-
-Data is grouped by hour and includes device identification:
-
-```json
-{
-  "timestamp": "2024-01-15T14:00:00Z",
-  "device": "MacBook-Pro",
-  "data": {
-    "applications": {
-      "Code - main.py — project": 1800.5,
-      "Safari - Documentation": 1200.3
-    },
-    "total_time": 3600.8
-  }
-}
-```
 
 ## ⚙️ Configuration
 
