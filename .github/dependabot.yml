@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "pip" # Python dependencies
+    directory: "/" # Location of package manifests (pyproject.toml)
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "wtznc"
+    assignees:
+      - "wtznc"
+  - package-ecosystem: "github-actions" # GitHub Actions
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "wtznc"
+    assignees:
+      - "wtznc"
