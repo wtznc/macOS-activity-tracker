@@ -10,6 +10,7 @@ from typing import Optional
 
 from .activity_monitor import ActivityLogger, ActivityMonitor
 from .storage import ActivityDataStore
+from .utils import get_data_directory
 
 
 class ActivityTracker:
@@ -22,7 +23,7 @@ class ActivityTracker:
 
     def __init__(
         self,
-        data_dir: str = "activity_data",
+        data_dir: Optional[str] = None,
         interval: int = 60,
         verbose: bool = True,
         include_window_titles: bool = True,
@@ -33,7 +34,8 @@ class ActivityTracker:
         Initialize the Activity Tracker.
 
         Args:
-            data_dir (str): Directory to store activity data files.
+            data_dir (Optional[str]): Directory to store activity data files. 
+                                    If None, uses appropriate user data directory.
             interval (int): Data save interval in seconds.
             verbose (bool): Enable verbose logging of app switches.
             include_window_titles (bool): Include window titles in tracking.
@@ -43,6 +45,10 @@ class ActivityTracker:
         self.interval = interval
         self.running = False
         self.last_check_time = datetime.now()
+
+        # Use appropriate data directory
+        if data_dir is None:
+            data_dir = str(get_data_directory())
 
         # Use composition - inject specialized components
         window_titles = include_window_titles and not fast_mode

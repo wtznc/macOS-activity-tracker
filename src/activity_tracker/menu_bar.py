@@ -31,15 +31,18 @@ except ImportError:
 try:
     from activity_tracker.core import ActivityTracker
     from activity_tracker.sync import SyncManager
+    from activity_tracker.utils import get_data_directory
 except ImportError:
     try:
         from .core import ActivityTracker
         from .sync import SyncManager
+        from .utils import get_data_directory
     except ImportError:
         # If running as script, add parent directory to path
         sys.path.insert(0, str(Path(__file__).parent))
         from core import ActivityTracker  # type: ignore[import,no-redef]
         from sync import SyncManager  # type: ignore[import,no-redef]
+        from utils import get_data_directory  # type: ignore[import,no-redef]
 
 
 class ActivityTrackerMenuBarDelegate(NSObject):
@@ -358,8 +361,7 @@ Last sync: {status['last_sync'] if status['last_sync'] else 'Never'}"""
     @objc.IBAction
     def openDataFolder_(self, sender):
         """Open the data folder in Finder."""
-        data_path = Path("activity_data").absolute()
-        data_path.mkdir(exist_ok=True)
+        data_path = get_data_directory()
         subprocess.run(
             ["open", str(data_path)], check=False
         )  # nosec B603,B607 - Safe macOS open command
