@@ -1,18 +1,19 @@
-.PHONY: help install install-dev test test-cov lint format clean build release app
+.PHONY: help install install-dev install-build test test-cov lint format clean build release app
 
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  install      Install package in development mode"
-	@echo "  install-dev  Install package with development dependencies"
-	@echo "  test         Run tests"
-	@echo "  test-cov     Run tests with coverage report"
-	@echo "  lint         Run linting checks"
-	@echo "  format       Format code with black and isort"
-	@echo "  clean        Clean build artifacts"
-	@echo "  build        Build package"
-	@echo "  release      Build and release package"
-	@echo "  app          Build macOS app bundle"
+	@echo "  install        Install package in development mode"
+	@echo "  install-dev    Install package with development dependencies"
+	@echo "  install-build  Install build dependencies (PyInstaller)"
+	@echo "  test           Run tests"
+	@echo "  test-cov       Run tests with coverage report"
+	@echo "  lint           Run linting checks"
+	@echo "  format         Format code with black and isort"
+	@echo "  clean          Clean build artifacts"
+	@echo "  build          Build package"
+	@echo "  release        Build and release package"
+	@echo "  app            Build macOS app bundle with PyInstaller"
 
 # Installation
 install:
@@ -21,6 +22,9 @@ install:
 install-dev:
 	pip install -e ".[dev]"
 	pre-commit install
+
+install-build:
+	pip install -e ".[build]"
 
 # Testing
 test:

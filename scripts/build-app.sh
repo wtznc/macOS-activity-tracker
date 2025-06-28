@@ -1,15 +1,13 @@
 #!/bin/bash
 
-# Build macOS App Bundle for Activity Tracker
+# Build macOS App Bundle for Activity Tracker using PyInstaller
 
 set -e
 
 # Configuration
 APP_NAME="Activity Tracker"
-BUNDLE_ID="com.wtznc.activity-tracker"
-VERSION="${VERSION:-1.0.0}"  # Use environment variable if set, otherwise default
+VERSION="${VERSION:-1.0.2}"  # Use environment variable if set, otherwise default
 DIST_DIR="dist"
-APP_DIR="$DIST_DIR/$APP_NAME.app"
 
 # Colors
 RED='\033[0;31m'
@@ -40,128 +38,79 @@ if [ ! -f "pyproject.toml" ]; then
     print_error "Must run from project root directory"
 fi
 
-print_step "Building macOS App Bundle..."
-
-# Create distribution directory
-mkdir -p "$DIST_DIR"
-rm -rf "$APP_DIR"
-
-# Create app bundle structure
-print_step "Creating app bundle structure..."
-mkdir -p "$APP_DIR/Contents/MacOS"
-mkdir -p "$APP_DIR/Contents/Resources"
-mkdir -p "$APP_DIR/Contents/Frameworks"
-
-# Install dependencies and copy only site-packages
-print_step "Installing dependencies..."
-if [ ! -d "build_venv" ]; then
-    python3 -m venv build_venv
-    source build_venv/bin/activate
-    pip install --upgrade pip
-    pip install .
-else
-    source build_venv/bin/activate
+# Check if PyInstaller spec file exists
+if [ ! -f "activity-tracker.spec" ]; then
+    print_error "PyInstaller spec file not found: activity-tracker.spec"
 fi
 
-print_step "Copying dependencies..."
-# Find Python version
-PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-SITE_PACKAGES="build_venv/lib/python$PYTHON_VERSION/site-packages"
+print_step "Building macOS App Bundle with PyInstaller..."
 
-# Copy only the site-packages (dependencies)
-cp -R "$SITE_PACKAGES" "$APP_DIR/Contents/Resources/"
+# Clean previous builds
+print_step "Cleaning previous builds..."
+rm -rf "$DIST_DIR"
+rm -rf "build"
 
-# Clean up cache files
-find "$APP_DIR/Contents/Resources/site-packages" -name "*.pyc" -delete
-find "$APP_DIR/Contents/Resources/site-packages" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+# Create and activate virtual environment for building
+print_step "Setting up build environment..."
+if [ ! -d "build_venv" ]; then
+    python3 -m venv build_venv
+fi
 
-# Copy source code
-print_step "Copying source code..."
-cp -R src "$APP_DIR/Contents/Resources/"
+source build_venv/bin/activate
 
-# Create Info.plist
-print_step "Creating Info.plist..."
-cat > "$APP_DIR/Contents/Info.plist" << EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>ActivityTracker</string>
-    <key>CFBundleIdentifier</key>
-    <string>$BUNDLE_ID</string>
-    <key>CFBundleName</key>
-    <string>$APP_NAME</string>
-    <key>CFBundleDisplayName</key>
-    <string>$APP_NAME</string>
-    <key>CFBundleVersion</key>
-    <string>$VERSION</string>
-    <key>CFBundleShortVersionString</key>
-    <string>$VERSION</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleSignature</key>
-    <string>????</string>
-    <key>LSUIElement</key>
-    <true/>
-    <key>LSMinimumSystemVersion</key>
-    <string>10.14</string>
-    <key>NSHighResolutionCapable</key>
-    <true/>
-    <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2025 Wojciech Tyziniec. MIT License.</string>
-    <key>NSAppleEventsUsageDescription</key>
-    <string>Activity Tracker needs to access application information to track your usage.</string>
-    <key>NSSystemAdministrationUsageDescription</key>
-    <string>Activity Tracker needs system access to monitor application usage.</string>
-</dict>
-</plist>
-EOF
+# Install build dependencies
+print_step "Installing build dependencies..."
+pip install --upgrade pip
+pip install -e ".[build]"
 
-# Create executable script
-print_step "Creating executable..."
-cat > "$APP_DIR/Contents/MacOS/ActivityTracker" << 'EOF'
-#!/bin/bash
+# Verify PyInstaller installation
+if ! command -v pyinstaller >/dev/null 2>&1; then
+    print_error "PyInstaller not found in PATH"
+fi
 
-# Get the directory of this script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_DIR="$(dirname "$SCRIPT_DIR")"
-RESOURCES_DIR="$APP_DIR/Resources"
-FRAMEWORKS_DIR="$APP_DIR/Frameworks"
+print_info "PyInstaller version: $(pyinstaller --version)"
 
-# Use system Python
-PYTHON="python3"
+# Build the app bundle
+print_step "Building app bundle with PyInstaller..."
+pyinstaller \
+    --clean \
+    --noconfirm \
+    --log-level=INFO \
+    activity-tracker.spec
 
-# Set up Python environment - bundled dependencies first, then source code, then system
-export PYTHONPATH="$RESOURCES_DIR/site-packages:$RESOURCES_DIR/src:$PYTHONPATH"
-
-# Change to resources directory
-cd "$RESOURCES_DIR"
-
-# Launch using the CLI entry point
-exec "$PYTHON" -m activity_tracker.menu_bar
-EOF
-
-chmod +x "$APP_DIR/Contents/MacOS/ActivityTracker"
-
-# Create PkgInfo
-echo -n "APPL????" > "$APP_DIR/Contents/PkgInfo"
+# Verify the build
+if [ ! -d "$DIST_DIR/$APP_NAME.app" ]; then
+    print_error "App bundle was not created successfully"
+fi
 
 # Set proper permissions
 print_step "Setting permissions..."
-chmod -R 755 "$APP_DIR"
+chmod -R 755 "$DIST_DIR/$APP_NAME.app"
 
-# Create app icon (basic text-based icon for now)
-print_step "Creating app icon..."
-mkdir -p "$APP_DIR/Contents/Resources/AppIcon.iconset"
-# For now, just create an empty icon file to prevent errors
-touch "$APP_DIR/Contents/Resources/AppIcon.iconset/icon_512x512.png" || true
+# Verify the executable
+EXECUTABLE_PATH="$DIST_DIR/$APP_NAME.app/Contents/MacOS/ActivityTracker"
+if [ ! -f "$EXECUTABLE_PATH" ]; then
+    print_error "Executable not found: $EXECUTABLE_PATH"
+fi
+
+if [ ! -x "$EXECUTABLE_PATH" ]; then
+    print_error "Executable is not executable: $EXECUTABLE_PATH"
+fi
 
 print_step "App bundle created successfully!"
-print_info "Location: $APP_DIR"
+print_info "Location: $DIST_DIR/$APP_NAME.app"
+print_info "Bundle size: $(du -sh "$DIST_DIR/$APP_NAME.app" | cut -f1)"
 print_info "To install: Drag to Applications folder"
 
-# Optional: Create a simple installer
+# Test the bundle quickly (without launching GUI)
+print_step "Testing bundle integrity..."
+if "$EXECUTABLE_PATH" --help >/dev/null 2>&1 || [ $? -eq 1 ]; then
+    print_info "Bundle integrity check passed"
+else
+    print_error "Bundle integrity check failed"
+fi
+
+# Optional: Create DMG
 if [[ "${CI:-false}" == "true" ]] || [[ "${CREATE_DMG:-}" == "true" ]]; then
     # In CI or when explicitly requested, create DMG automatically
     REPLY="y"
@@ -179,10 +128,27 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     mkdir -p "$DMG_DIR"
 
     # Copy app to DMG directory
-    cp -R "$APP_DIR" "$DMG_DIR/"
+    cp -R "$DIST_DIR/$APP_NAME.app" "$DMG_DIR/"
 
     # Create symlink to Applications
     ln -s /Applications "$DMG_DIR/Applications"
+
+    # Create README for DMG
+    cat > "$DMG_DIR/README.txt" << 'EOF'
+Activity Tracker Installation
+=============================
+
+1. Drag "Activity Tracker.app" to the Applications folder
+2. Launch Activity Tracker from Applications or Launchpad
+3. Grant Accessibility permissions when prompted:
+   - System Preferences > Security & Privacy > Privacy > Accessibility
+   - Click the lock to make changes
+   - Check "Activity Tracker"
+
+For more help: https://github.com/wtznc/macOS-activity-tracker
+
+Enjoy tracking your productivity!
+EOF
 
     # Create DMG
     if command -v hdiutil >/dev/null 2>&1; then
@@ -190,6 +156,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 
         if [ $? -eq 0 ]; then
             print_info "DMG created: $DIST_DIR/$DMG_NAME.dmg"
+            print_info "DMG size: $(du -sh "$DIST_DIR/$DMG_NAME.dmg" | cut -f1)"
         else
             print_error "Failed to create DMG"
         fi
@@ -202,3 +169,5 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 print_step "Build complete!"
+print_info "The app bundle is self-contained and includes all Python dependencies."
+print_info "Users won't need to install Python or any packages separately."
