@@ -72,13 +72,15 @@ After installation, look for the Activity Tracker icon in your menu bar:
 - **View Data**: Open data folder in Finder
 - **Settings**: Configure verbose logging, fast mode, and AFK threshold
 
-### Command Line
+### Command Line (Development Only)
+
+> **Note**: Command line tools are only available when installing from source. DMG users should use the menu bar app.
 
 ```bash
-# Launch menu bar app
+# Launch menu bar app (development installation only)
 activity-tracker-menu
 
-# Start tracking with console output
+# Start tracking with console output (development installation only)
 activity-tracker
 
 # Fast mode (app names only, ~600x faster)
