@@ -13,17 +13,19 @@ from pathlib import Path
 def get_data_directory() -> Path:
     """
     Get the appropriate data directory for storing activity data.
-    
+
     Returns a user-specific directory that works regardless of how the app is launched.
     On macOS, this will be ~/Library/Application Support/ActivityTracker/
     """
     if sys.platform == "darwin":  # macOS
         # Use macOS Application Support directory
-        app_support = Path.home() / "Library" / "Application Support" / "ActivityTracker"
+        app_support = (
+            Path.home() / "Library" / "Application Support" / "ActivityTracker"
+        )
     else:
         # Fallback for other platforms
         app_support = Path.home() / ".activity_tracker"
-    
+
     # Ensure the directory exists
     app_support.mkdir(parents=True, exist_ok=True)
     return app_support

@@ -34,7 +34,7 @@ class ActivityTracker:
         Initialize the Activity Tracker.
 
         Args:
-            data_dir (Optional[str]): Directory to store activity data files. 
+            data_dir (Optional[str]): Directory to store activity data files.
                                     If None, uses appropriate user data directory.
             interval (int): Data save interval in seconds.
             verbose (bool): Enable verbose logging of app switches.
