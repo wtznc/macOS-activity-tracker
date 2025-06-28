@@ -57,7 +57,7 @@ class ActivityTrackerMenuBarDelegate(NSObject):
         self.verbose_mode = True  # Enable verbose logging by default
         self.fast_mode = False
         self.idle_threshold = 300  # 5 minutes default
-        self.sync_manager = SyncManager()
+        self.sync_manager = SyncManager(data_dir=str(get_data_directory()))
 
         # Create status bar item
         self.status_bar = NSStatusBar.systemStatusBar()
