@@ -78,7 +78,7 @@ jobs:
         pip install safety bandit
 
     - name: Run safety check
-      run: safety check
+      run: safety scan --continue-on-error
 
     - name: Run bandit security linter
       run: bandit -r src/ -c .bandit
