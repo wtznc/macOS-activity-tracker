@@ -90,7 +90,7 @@ class HttpSyncClient:
                 self.endpoint,
                 json=payload,
                 headers=self._get_headers(),
-                timeout=30,
+                timeout=(5, 15),  # 5s connect, 15s read
             )
 
             if response.status_code in [200, 201]:
