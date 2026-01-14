@@ -33,7 +33,7 @@ class ApplicationDetector:
             active_app = workspace.activeApplication()
             if active_app:
                 return active_app["NSApplicationName"]
-        except Exception as e:
+        except (KeyError, AttributeError, RuntimeError) as e:
             print(f"Error getting active application: {e}")
         return None
 
@@ -62,7 +62,7 @@ class WindowTitleDetector:
 
             return self._get_title_via_quartz(app_name)
 
-        except Exception as e:
+        except (subprocess.SubprocessError, KeyError, TypeError, RuntimeError) as e:
             print(f"Warning: Failed to get window title for {app_name}: {e}")
         return None
 
@@ -95,7 +95,7 @@ class WindowTitleDetector:
 
         try:
             result = subprocess.run(
-                ["osascript", "-e", script], capture_output=True, text=True, timeout=2
+                ["osascript", "-e", script], capture_output=True, text=True, timeout=1.0
             )
 
             if result.returncode == 0 and result.stdout.strip():
@@ -123,7 +123,7 @@ class WindowTitleDetector:
             if app_name in ["Code", "Visual Studio Code"]:
                 return self._get_vscode_fallback_title(window_list)
 
-        except Exception as e:
+        except (KeyError, TypeError, RuntimeError) as e:
             print(f"Warning: Failed to get window title: {e}")
 
         return None
@@ -158,7 +158,7 @@ class IdleDetector:
             return CGEventSourceSecondsSinceLastEventType(
                 kCGEventSourceStateHIDSystemState, kCGAnyInputEventType
             )
-        except Exception as e:
+        except (RuntimeError, OSError) as e:
             print(f"Error getting system idle time: {e}")
             return 0.0
 
@@ -223,7 +223,7 @@ class TitleCleaner:
             import unicodedata
 
             title = unicodedata.normalize("NFC", title)
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             print(f"Warning: Failed to normalize Unicode in title: {e}")
 
         # Apply replacements

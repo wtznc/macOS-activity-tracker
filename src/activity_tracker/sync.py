@@ -16,18 +16,24 @@ class SyncManager:
     def __init__(
         self,
         data_dir: str = "activity_data",
-        endpoint: str = "http://192.168.0.244:8000/data/macos-activity",
+        endpoint: str = "",
+        auth_token: str = "",  # nosec B107
     ):
         self.endpoint = endpoint
+        self.auth_token = auth_token
 
         # Use composition - inject specialized components
         self.data_aggregator = DataAggregator(data_dir)
         self.sync_state = SyncStateManager(data_dir)
-        self.http_client = HttpSyncClient(endpoint)
+        self.http_client = HttpSyncClient(endpoint, auth_token)
         self.device_identifier = DeviceIdentifier()
 
     def sync_hour(self, hour_key: str, hour_data: Dict, force: bool = False) -> bool:
         """Sync single hour of data to endpoint."""
+        if not self.endpoint:
+            print("Error: No sync endpoint configured.")
+            return False
+
         if not force and self.sync_state.is_hour_synced(hour_key):
             print(f"Hour {hour_key} already synced (use force=True to resync)")
             return True
@@ -40,6 +46,13 @@ class SyncManager:
 
     def sync_all(self, force: bool = False, max_hours: Optional[int] = None) -> Dict:
         """Sync all available data."""
+        if not self.endpoint:
+            print("Error: No sync endpoint configured.")
+            print(
+                "Set ACTIVITY_TRACKER_ENDPOINT environment variable or provide endpoint parameter."
+            )
+            return {"synced": 0, "failed": 0, "skipped": 0}
+
         files_by_hour = self.data_aggregator.group_files_by_hour()
 
         if not files_by_hour:
@@ -87,9 +100,14 @@ class SyncManager:
 
 def main():
     """Command line interface for sync manager."""
+    import os
     import sys
 
-    sync_manager = SyncManager()
+    # Get configuration from environment variables
+    endpoint = os.getenv("ACTIVITY_TRACKER_ENDPOINT", "")
+    auth_token = os.getenv("ACTIVITY_TRACKER_AUTH_TOKEN", "")
+
+    sync_manager = SyncManager(endpoint=endpoint, auth_token=auth_token)
 
     if len(sys.argv) == 1 or "--help" in sys.argv:
         print("Sync Manager for Activity Tracker")
@@ -99,6 +117,9 @@ def main():
         print("  sync      Sync all pending data")
         print("  force     Force sync all data (including already synced)")
         print("  recent    Sync only last 24 hours")
+        print("\nEnvironment Variables:")
+        print("  ACTIVITY_TRACKER_ENDPOINT      Sync endpoint URL (required for sync)")
+        print("  ACTIVITY_TRACKER_AUTH_TOKEN    Bearer token for authentication")
         return
 
     command = sys.argv[1]
