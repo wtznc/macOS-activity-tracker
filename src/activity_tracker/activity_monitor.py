@@ -99,11 +99,13 @@ class ActivityMonitor:
                 self.app_change_time = current_time
             elif current_time - self.app_change_time >= self.debounce_delay:
                 # App switch confirmed - record duration for previous app
-                # Note: Duration will be properly bounded by minute boundaries in core.py
+                # Duration will be properly bounded by minute boundaries in
+                # core.py
                 if current_app and current_app != active_app:
                     duration = current_time - start_time
-                    # Only record if duration is reasonable (not negative, not excessive)
-                    if 0 < duration <= 120:  # Max 2 minutes to catch edge cases
+                    # Only record if duration is reasonable (not negative,
+                    # not excessive)
+                    if 0 < duration <= 120:  # Max 2 minutes
                         self.session_tracker.add_activity(current_app, duration)
 
                 self.last_stable_app = active_app
