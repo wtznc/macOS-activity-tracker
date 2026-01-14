@@ -59,8 +59,9 @@ class SyncPayloadBuilder:
 class HttpSyncClient:
     """HTTP client for syncing data to remote endpoints."""
 
-    def __init__(self, endpoint: str):
+    def __init__(self, endpoint: str, auth_token: str = ""):
         self.endpoint = endpoint
+        self.auth_token = auth_token
         self.payload_builder = SyncPayloadBuilder()
         self._warn_if_insecure()
 
@@ -73,6 +74,13 @@ class HttpSyncClient:
                 "Consider using HTTPS for secure data transmission."
             )
 
+    def _get_headers(self) -> Dict[str, str]:
+        """Get request headers including authentication if configured."""
+        headers = {"Content-Type": "application/json"}
+        if self.auth_token:
+            headers["Authorization"] = f"Bearer {self.auth_token}"
+        return headers
+
     def sync_hour_data(self, hour_key: str, hour_data: Dict) -> bool:
         """Sync single hour of data to endpoint."""
         payload = self.payload_builder.create_sync_payload(hour_key, hour_data)
@@ -81,7 +89,7 @@ class HttpSyncClient:
             response = requests.post(
                 self.endpoint,
                 json=payload,
-                headers={"Content-Type": "application/json"},
+                headers=self._get_headers(),
                 timeout=30,
             )
 
