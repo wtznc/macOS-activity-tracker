@@ -117,7 +117,9 @@ class HttpSyncClient:
         """Test connection to the sync endpoint."""
         try:
             # Simple GET request to test connectivity
-            response = requests.get(self.endpoint, timeout=10)
+            response = requests.get(
+                self.endpoint, timeout=(3, 10)
+            )  # 3s connect, 10s read
             return response.status_code < 500
         except requests.exceptions.RequestException:
             return False
