@@ -32,7 +32,7 @@ class DeviceIdentifier:
                     hostname = hostname[:-6]
 
             return hostname
-        except Exception:
+        except (OSError, socket.error):
             return f"macos-{platform.machine()}"
 
 
@@ -91,7 +91,7 @@ class HttpSyncClient:
         except requests.exceptions.RequestException as e:
             print(f"[FAIL] Network error syncing {hour_key}: {e}")
             return False
-        except Exception as e:
+        except (KeyError, TypeError, ValueError) as e:
             print(f"[FAIL] Error syncing {hour_key}: {e}")
             return False
 
@@ -101,7 +101,7 @@ class HttpSyncClient:
             # Simple GET request to test connectivity
             response = requests.get(self.endpoint, timeout=10)
             return response.status_code < 500
-        except Exception:
+        except requests.exceptions.RequestException:
             return False
 
 
