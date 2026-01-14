@@ -12,6 +12,12 @@ from .activity_monitor import ActivityLogger, ActivityMonitor
 from .storage import ActivityDataStore
 from .utils import get_data_directory
 
+# Maximum allowed total time per minute interval (in seconds).
+# Set to 65 to allow slight overflow due to timing imprecision between
+# app switches, polling intervals, and minute boundary detection.
+# If total exceeds this threshold, durations are proportionally scaled to 60s.
+MAX_MINUTE_TOTAL_SECONDS = 65
+
 
 class ActivityTracker:
     """
@@ -163,7 +169,7 @@ class ActivityTracker:
 
             # Final safety check: ensure total doesn't exceed reasonable bounds
             total_time = sum(minute_bounded_data.values())
-            if total_time > 65:  # Allow slight overflow for edge cases
+            if total_time > MAX_MINUTE_TOTAL_SECONDS:
                 # Proportionally scale down all durations
                 scale_factor = 60.0 / total_time
                 minute_bounded_data = {
