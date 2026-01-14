@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Optional
 
 from .activity_monitor import ActivityLogger, ActivityMonitor
+from .config import DEFAULT_CONFIG
 from .storage import ActivityDataStore
 from .utils import get_data_directory
 
@@ -30,11 +31,11 @@ class ActivityTracker:
     def __init__(
         self,
         data_dir: Optional[str] = None,
-        interval: int = 60,
-        verbose: bool = True,
-        include_window_titles: bool = True,
-        fast_mode: bool = False,
-        idle_threshold: int = 300,
+        interval: int = DEFAULT_CONFIG["save_interval"],
+        verbose: bool = DEFAULT_CONFIG["verbose_logging"],
+        include_window_titles: bool = DEFAULT_CONFIG["include_window_titles"],
+        fast_mode: bool = DEFAULT_CONFIG["fast_mode"],
+        idle_threshold: int = DEFAULT_CONFIG["idle_threshold"],
     ):
         """
         Initialize the Activity Tracker.
