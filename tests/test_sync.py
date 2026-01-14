@@ -19,7 +19,7 @@ class TestSyncManager(unittest.TestCase):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
         self.sync_manager = SyncManager(
-            data_dir=self.temp_dir, endpoint="http://test.example.com/api/data"
+            data_dir=self.temp_dir, endpoint="https://test.example.com/api/data"
         )
 
     def tearDown(self):
@@ -33,7 +33,9 @@ class TestSyncManager(unittest.TestCase):
         self.assertEqual(
             self.sync_manager.data_aggregator.data_dir, Path(self.temp_dir)
         )
-        self.assertEqual(self.sync_manager.endpoint, "http://test.example.com/api/data")
+        self.assertEqual(
+            self.sync_manager.endpoint, "https://test.example.com/api/data"
+        )
         self.assertIsNotNone(self.sync_manager.sync_state.synced_hours_file)
 
     def test_create_sample_data(self):
@@ -243,7 +245,7 @@ class TestSyncManagerIntegration(unittest.TestCase):
         mock_post.return_value = mock_response
 
         # Create sync manager instance
-        SyncManager(data_dir=self.temp_dir, endpoint="http://test.example.com/api")
+        SyncManager(data_dir=self.temp_dir, endpoint="https://test.example.com/api")
 
         # Create sample data files
         files_data = [

@@ -32,7 +32,7 @@ class DeviceIdentifier:
                     hostname = hostname[:-6]
 
             return hostname
-        except Exception:
+        except (OSError, socket.error):
             return f"macos-{platform.machine()}"
 
 
@@ -59,9 +59,27 @@ class SyncPayloadBuilder:
 class HttpSyncClient:
     """HTTP client for syncing data to remote endpoints."""
 
-    def __init__(self, endpoint: str):
+    def __init__(self, endpoint: str, auth_token: str = ""):  # nosec B107
         self.endpoint = endpoint
+        self.auth_token = auth_token
         self.payload_builder = SyncPayloadBuilder()
+        self._warn_if_insecure()
+
+    def _warn_if_insecure(self) -> None:
+        """Warn if endpoint uses insecure HTTP instead of HTTPS."""
+        if self.endpoint and self.endpoint.startswith("http://"):
+            print(
+                "[WARN] Sync endpoint uses HTTP instead of HTTPS. "
+                "Activity data may be transmitted unencrypted. "
+                "Consider using HTTPS for secure data transmission."
+            )
+
+    def _get_headers(self) -> Dict[str, str]:
+        """Get request headers including authentication if configured."""
+        headers = {"Content-Type": "application/json"}
+        if self.auth_token:
+            headers["Authorization"] = f"Bearer {self.auth_token}"
+        return headers
 
     def sync_hour_data(self, hour_key: str, hour_data: Dict) -> bool:
         """Sync single hour of data to endpoint."""
@@ -71,7 +89,7 @@ class HttpSyncClient:
             response = requests.post(
                 self.endpoint,
                 json=payload,
-                headers={"Content-Type": "application/json"},
+                headers=self._get_headers(),
                 timeout=(5, 15),  # 5s connect, 15s read
             )
 
@@ -91,7 +109,7 @@ class HttpSyncClient:
         except requests.exceptions.RequestException as e:
             print(f"[FAIL] Network error syncing {hour_key}: {e}")
             return False
-        except Exception as e:
+        except (KeyError, TypeError, ValueError) as e:
             print(f"[FAIL] Error syncing {hour_key}: {e}")
             return False
 
@@ -99,9 +117,11 @@ class HttpSyncClient:
         """Test connection to the sync endpoint."""
         try:
             # Simple GET request to test connectivity
-            response = requests.get(self.endpoint, timeout=(3, 10))  # 3s connect, 10s read
+            response = requests.get(
+                self.endpoint, timeout=(3, 10)
+            )  # 3s connect, 10s read
             return response.status_code < 500
-        except Exception:
+        except requests.exceptions.RequestException:
             return False
 
 

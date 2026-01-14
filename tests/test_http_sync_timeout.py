@@ -67,9 +67,7 @@ class TestHttpSyncTimeout(unittest.TestCase):
     def test_sync_handles_connect_timeout(self, mock_post):
         """Test that sync properly handles connection timeout."""
         # Mock connection timeout
-        mock_post.side_effect = requests.exceptions.ConnectTimeout(
-            "Connection timeout"
-        )
+        mock_post.side_effect = requests.exceptions.ConnectTimeout("Connection timeout")
 
         hour_key = "2024-01-15_14"
         hour_data = {
@@ -118,4 +116,3 @@ class TestHttpSyncTimeout(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

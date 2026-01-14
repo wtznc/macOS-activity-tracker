@@ -69,7 +69,7 @@ class DataAggregator:
 
                     for app, duration in data.items():
                         aggregated[app] = aggregated.get(app, 0) + duration
-            except Exception as e:
+            except (json.JSONDecodeError, IOError, PermissionError) as e:
                 print(f"Warning: Could not read {file_path}: {e}")
 
         return {
@@ -105,7 +105,7 @@ class SyncStateManager:
                     return set(json.load(f))
             else:
                 return set()
-        except Exception:
+        except (json.JSONDecodeError, IOError, PermissionError):
             return set()
 
     def save_synced_hours(self):
@@ -113,7 +113,7 @@ class SyncStateManager:
         try:
             with open(self.synced_hours_file, "w", encoding="utf-8") as f:
                 json.dump(list(self.synced_hours), f, ensure_ascii=False)
-        except Exception as e:
+        except (IOError, PermissionError) as e:
             print(f"Warning: Could not save synced hours: {e}")
 
     def is_hour_synced(self, hour_key: str) -> bool:

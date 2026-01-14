@@ -7,6 +7,7 @@ Shows a menu bar icon when the tracker is running.
 import subprocess  # nosec B404 - Required for macOS Finder integration
 import sys
 import threading
+import time
 from pathlib import Path
 
 try:
@@ -54,9 +55,9 @@ class ActivityTrackerMenuBarDelegate(NSObject):
         self.tracker = None
         self.tracker_thread = None
         self.is_running = False
-        self.verbose_mode = True  # Enable verbose logging by default
-        self.fast_mode = False
-        self.idle_threshold = 300  # 5 minutes default
+        self.verbose_mode: bool = True
+        self.fast_mode: bool = False
+        self.idle_threshold: int = 300
         self.sync_manager = SyncManager(data_dir=str(get_data_directory()))
 
         # Create status bar item
@@ -236,8 +237,6 @@ class ActivityTrackerMenuBarDelegate(NSObject):
             print("Restarting tracker with new verbose setting...")
             self.stop_tracking()
             # Small delay to ensure clean shutdown
-            import time
-
             time.sleep(0.5)
             self.start_tracking()
 
@@ -260,8 +259,6 @@ class ActivityTrackerMenuBarDelegate(NSObject):
         if self.is_running:
             print("Restarting tracker with new mode...")
             self.stop_tracking()
-            import time
-
             time.sleep(0.5)
             self.start_tracking()
 
