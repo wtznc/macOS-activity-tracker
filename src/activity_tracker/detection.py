@@ -95,7 +95,7 @@ class WindowTitleDetector:
 
         try:
             result = subprocess.run(
-                ["osascript", "-e", script], capture_output=True, text=True, timeout=2
+                ["osascript", "-e", script], capture_output=True, text=True, timeout=1.0
             )
 
             if result.returncode == 0 and result.stdout.strip():
