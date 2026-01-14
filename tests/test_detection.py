@@ -46,8 +46,8 @@ class TestWindowTitleDetector(unittest.TestCase):
         # Should retrieve from cache immediately
         self.assertEqual(detector._get_from_cache(app_name), title)
 
-        # Wait for expiration (slightly longer than TTL to ensure expiration)
-        time.sleep(0.11)
+        # Wait for expiration (with buffer for slower systems)
+        time.sleep(0.15)
 
         # Should return None after expiration
         self.assertIsNone(detector._get_from_cache(app_name))
@@ -165,17 +165,23 @@ class TestWindowTitleDetector(unittest.TestCase):
     @patch("activity_tracker.detection.subprocess.run")
     @patch("activity_tracker.detection.CGWindowListCopyWindowInfo")
     def test_vscode_special_handling(self, mock_quartz, mock_run):
-        """Test special handling for VS Code."""
+        """Test special handling for VS Code with empty window title.
+
+        When AppleScript times out and Quartz returns a window with empty title,
+        the code should fall back to _get_vscode_fallback_title which looks for
+        editor windows by size and layer properties.
+        """
         import subprocess
 
         # Make AppleScript fail
         mock_run.side_effect = subprocess.TimeoutExpired("osascript", 0.5)
 
-        # Mock Quartz with no direct match
+        # Mock Quartz with no direct match (empty kCGWindowName)
+        # This simulates VS Code windows that don't expose their title through Quartz
         mock_quartz.return_value = [
             {
                 "kCGWindowOwnerName": "Code",
-                "kCGWindowName": "",
+                "kCGWindowName": "",  # Empty title triggers fallback
                 "kCGWindowLayer": 0,
                 "kCGWindowBounds": {"Width": 800, "Height": 600},
             }

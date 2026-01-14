@@ -89,10 +89,13 @@ class WindowTitleDetector:
                 if title:
                     self._update_cache(app_name, title)
                     return title
-                # AppleScript failed/timed out - fallback to Quartz
-                self._metrics["quartz_fallbacks"] += 1
+                # AppleScript failed/timed out - use Quartz as fallback
+                title = self._get_title_via_quartz(app_name, count_as_fallback=True)
+                if title:
+                    self._update_cache(app_name, title)
+                return title
 
-            # Use Quartz for unsupported apps or as fallback
+            # Use Quartz for unsupported apps (not a fallback, primary method)
             title = self._get_title_via_quartz(app_name, count_as_fallback=False)
             if title:
                 self._update_cache(app_name, title)
