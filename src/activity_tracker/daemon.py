@@ -64,16 +64,28 @@ class ActivityDaemon:
         """Start the daemon."""
         # Check if already running
         if os.path.exists(self.pidfile):
-            with open(self.pidfile, "r") as f:
-                pid = int(f.read().strip())
-
             try:
-                os.kill(pid, 0)  # Check if process exists
-                print(f"Daemon already running with PID {pid}")
-                return
-            except OSError:
-                # Process doesn't exist, remove stale pidfile
-                os.remove(self.pidfile)
+                with open(self.pidfile, "r") as f:
+                    content = f.read().strip()
+                    if not content:
+                        # Empty PID file - remove it
+                        os.remove(self.pidfile)
+                    else:
+                        pid = int(content)
+                        try:
+                            os.kill(pid, 0)  # Check if process exists
+                            print(f"Daemon already running with PID {pid}")
+                            return
+                        except OSError:
+                            # Process doesn't exist, remove stale pidfile
+                            os.remove(self.pidfile)
+            except (ValueError, IOError) as e:
+                # Corrupt PID file (invalid content or read error) - remove it
+                print(f"Removing corrupt PID file: {e}")
+                try:
+                    os.remove(self.pidfile)
+                except OSError:
+                    pass
 
         print("Starting activity tracker daemon...")
         self.daemonize()
