@@ -59,7 +59,7 @@ check_python() {
         print_error "Python $PYTHON_VERSION found, but Python $REQUIRED_VERSION or later is required."
     fi
 
-    echo -e "${GREEN}✓${NC} Python $PYTHON_VERSION found"
+    echo -e "${GREEN}[OK]${NC} Python $PYTHON_VERSION found"
 }
 
 install_package() {
@@ -106,12 +106,12 @@ EOF
             chmod +x "$INSTALL_DIR/$cmd"
         done
 
-        echo -e "${GREEN}✓${NC} Created wrapper scripts in $INSTALL_DIR"
+        echo -e "${GREEN}[OK]${NC} Created wrapper scripts in $INSTALL_DIR"
     fi
 
     # Verify installation
     if command -v activity-tracker-menu &> /dev/null; then
-        echo -e "${GREEN}✓${NC} Installation successful!"
+        echo -e "${GREEN}[OK]${NC} Installation successful!"
     else
         print_error "Installation failed - CLI commands not found in PATH"
     fi
@@ -187,7 +187,7 @@ EOF
     # Make the executable script runnable
     chmod +x "$MACOS_DIR/ActivityTracker"
 
-    echo -e "${GREEN}✓${NC} App bundle created: $APP_DIR"
+    echo -e "${GREEN}[OK]${NC} App bundle created: $APP_DIR"
 }
 
 setup_autostart() {
@@ -239,7 +239,7 @@ EOF
     # Load the LaunchAgent
     launchctl load "$PLIST_PATH" 2>/dev/null || true
 
-    echo -e "${GREEN}✓${NC} Auto-start configured"
+    echo -e "${GREEN}[OK]${NC} Auto-start configured"
 }
 
 launch_app() {
@@ -259,26 +259,26 @@ launch_app() {
     nohup "$COMMAND_PATH" > /dev/null 2>&1 &
     APP_PID=$!
 
-    echo -e "${GREEN}✓${NC} Activity Tracker started (PID: $APP_PID)"
-    echo "📊 Look for the menu bar icon"
+    echo -e "${GREEN}[OK]${NC} Activity Tracker started (PID: $APP_PID)"
+    echo "[INFO] Look for the menu bar icon"
 }
 
 print_success() {
     echo
-    echo -e "${GREEN}🎉 Setup Complete!${NC}"
+    echo -e "${GREEN}[SUCCESS] Setup Complete!${NC}"
     echo
-    echo "📊 Usage:"
+    echo "[INFO] Usage:"
     echo "   activity-tracker-menu          # Launch menu bar app"
     echo "   activity-tracker --help        # Core tracker CLI"
     echo "   activity-tracker-sync status   # Check sync status"
     echo
-    echo "📁 Data location: ~/Library/Application Support/ActivityTracker/"
-    echo "📖 Full documentation: README.md"
+    echo "[INFO] Data location: ~/Library/Application Support/ActivityTracker/"
+    echo "[INFO] Full documentation: README.md"
 
     # Add PATH notice if needed
     if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
         echo
-        echo -e "${YELLOW}⚠️  NOTE:${NC} You may need to add ~/.local/bin to your PATH:"
+        echo -e "${YELLOW}[WARN] NOTE:${NC} You may need to add ~/.local/bin to your PATH:"
         echo "   echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.zshrc"
         echo "   source ~/.zshrc"
     fi
@@ -300,11 +300,11 @@ case "$1" in
         ;;
     "app")
         create_app
-        echo -e "${GREEN}✓${NC} App bundle ready! Double-click 'Activity Tracker.app' to launch"
+        echo -e "${GREEN}[OK]${NC} App bundle ready! Double-click 'Activity Tracker.app' to launch"
         ;;
     "autostart")
         setup_autostart
-        echo -e "${GREEN}✓${NC} Auto-start enabled! Activity Tracker will start on login"
+        echo -e "${GREEN}[OK]${NC} Auto-start enabled! Activity Tracker will start on login"
         ;;
     "launch")
         launch_app

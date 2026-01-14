@@ -206,11 +206,11 @@ class TitleCleaner:
         "\u2026": "…",  # Horizontal ellipsis
         "\u2013": "–",  # En dash
         "\u2014": "—",  # Em dash
-        "\u2733": "✳",  # Eight spoked asterisk
-        "\u25cf": "●",  # Black circle
-        "\u25cb": "○",  # White circle
-        "\u2713": "✓",  # Check mark
-        "\u2717": "✗",  # Ballot X
+        "\u2733": "*",  # Eight spoked asterisk
+        "\u25cf": "*",  # Black circle
+        "\u25cb": "o",  # White circle
+        "\u2713": "+",  # Check mark
+        "\u2717": "x",  # Ballot X
     }
 
     def clean_title(self, title: str) -> str:

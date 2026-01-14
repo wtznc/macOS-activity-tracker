@@ -6,17 +6,17 @@
 
 A lightweight, privacy-focused macOS application that tracks your application usage and provides detailed insights into your digital productivity patterns.
 
-## ✨ Features
+## Features
 
-- **🔍 Detailed Tracking**: Monitors active applications with window titles and file names
-- **⚡ AFK Detection**: Automatically pauses tracking during idle periods
-- **📊 Menu Bar Interface**: Native macOS menu bar app with intuitive controls
-- **🚀 Performance Modes**: Fast mode (app names only) vs. detailed mode (full window titles)
-- **🔄 Data Synchronization**: Built-in sync capabilities to remote endpoints
-- **🛡️ Privacy First**: All data stays local unless explicitly synced
-- **📱 Self-Contained**: PyInstaller-based app bundles with no external dependencies
+- **Detailed Tracking**: Monitors active applications with window titles and file names
+- **AFK Detection**: Automatically pauses tracking during idle periods
+- **Menu Bar Interface**: Native macOS menu bar app with intuitive controls
+- **Performance Modes**: Fast mode (app names only) vs. detailed mode (full window titles)
+- **Data Synchronization**: Built-in sync capabilities to remote endpoints
+- **Privacy First**: All data stays local unless explicitly synced
+- **Self-Contained**: PyInstaller-based app bundles with no external dependencies
 
-## 📦 Installation
+## Installation
 
 ### Download Release (Recommended)
 
@@ -59,7 +59,7 @@ make install-dev
 python -m activity_tracker.menu_bar
 ```
 
-## 🚀 Usage
+## Usage
 
 ### Menu Bar App
 
@@ -122,7 +122,7 @@ activity-tracker-sync status | grep Device
 }
 ```
 
-## 📊 Data Storage
+## Data Storage
 
 Activity data is stored locally in JSON format at:
 ```
@@ -140,7 +140,7 @@ Activity data is stored locally in JSON format at:
 ```
 
 
-## ⚙️ Configuration
+## Configuration
 
 Configure via menu bar app settings or edit:
 ```
@@ -156,7 +156,7 @@ Configure via menu bar app settings or edit:
 }
 ```
 
-## 🛡️ Privacy & Security
+## Privacy & Security
 
 - **Local-first**: All data stored locally by default
 - **No keylogging**: Only tracks active applications, not keystrokes
@@ -164,7 +164,7 @@ Configure via menu bar app settings or edit:
 - **Opt-in sync**: Data sharing only when explicitly configured
 - **Open source**: Full transparency with source code available
 
-## 📋 Requirements
+## Requirements
 
 ### For App Bundle Users
 - **macOS**: 10.14 (Mojave) or later  
@@ -175,7 +175,7 @@ Configure via menu bar app settings or edit:
 - **Python**: 3.9 or later
 - **Permissions**: Accessibility access for window detection
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Permission Denied
 Grant Accessibility permissions in System Preferences > Security & Privacy > Privacy > Accessibility
@@ -198,7 +198,7 @@ make clean && make app
 make install-build
 ```
 
-## 🔧 Development
+## Development
 
 ```bash
 # Setup development environment
@@ -219,10 +219,10 @@ make format
 make install-build
 ```
 
-## 📜 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-**⭐ Star this repository if you find it useful!**
+**[STAR] Star this repository if you find it useful!**

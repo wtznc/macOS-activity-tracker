@@ -39,13 +39,13 @@ def fix_data_files(data_dir: Path) -> dict:
 
             # Check if there were Unicode characters
             has_unicode = any(
-                "·" in key or "—" in key or "✳" in key for key in data.keys()
+                "·" in key or "—" in key or "*" in key for key in data.keys()
             )
             if has_unicode:
-                print(f"✓ Fixed Unicode in: {file_path.name}")
+                print(f"[OK] Fixed Unicode in: {file_path.name}")
 
         except Exception as e:
-            print(f"✗ Error processing {file_path}: {e}")
+            print(f"[FAIL] Error processing {file_path}: {e}")
             results["errors"] += 1
 
     return results
@@ -68,7 +68,7 @@ def main():
     print(f"  Errors: {results['errors']} files")
 
     if results["fixed"] > 0:
-        print("✓ All files now use proper Unicode encoding!")
+        print("[OK] All files now use proper Unicode encoding!")
 
 
 if __name__ == "__main__":

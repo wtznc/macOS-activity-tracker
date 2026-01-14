@@ -43,11 +43,11 @@ def view_activity_file(filepath):
             timestamp_str = filename[9:-5]  # Remove 'activity_' and '.json'
             try:
                 dt = datetime.strptime(timestamp_str, "%Y%m%d_%H%M")
-                print(f"\n📅 {dt.strftime('%Y-%m-%d %H:%M')} ({filename})")
+                print(f"\n[DATE] {dt.strftime('%Y-%m-%d %H:%M')} ({filename})")
             except ValueError:
-                print(f"\n📄 {filename}")
+                print(f"\n[FILE] {filename}")
         else:
-            print(f"\n📄 {filename}")
+            print(f"\n[FILE] {filename}")
 
         print("=" * 60)
 
@@ -58,12 +58,12 @@ def view_activity_file(filepath):
 
         for app_name, duration in sorted_apps:
             percentage = (duration / total_time) * 100 if total_time > 0 else 0
-            print(f"⏱️  {duration:6.1f}s ({percentage:4.1f}%) - {app_name}")
+            print(f"[TIME] {duration:6.1f}s ({percentage:4.1f}%) - {app_name}")
 
-        print(f"\n📊 Total: {total_time:.1f} seconds")
+        print(f"\n[TOTAL] {total_time:.1f} seconds")
 
     except Exception as e:
-        print(f"❌ Error reading {filepath}: {e}")
+        print(f"[ERROR] Error reading {filepath}: {e}")
 
 
 def main():
@@ -91,13 +91,13 @@ def main():
     # Sort files by name (chronological)
     all_files.sort()
 
-    print(f"🔍 Viewing {len(all_files)} activity file(s)")
+    print(f"[INFO] Viewing {len(all_files)} activity file(s)")
 
     for filepath in all_files:
         if Path(filepath).exists():
             view_activity_file(filepath)
         else:
-            print(f"❌ File not found: {filepath}")
+            print(f"[ERROR] File not found: {filepath}")
 
 
 if __name__ == "__main__":

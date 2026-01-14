@@ -155,7 +155,7 @@ class ActivityLogger:
         print(f"[{now_str}] Switch: {old_app} ({duration: .1f}s) -> {new_app}")
 
         if detection_time > 100:
-            print(f"  ⚠️  Slow detection: {detection_time: .0f}ms")
+            print(f"  [WARN] Slow detection: {detection_time: .0f}ms")
 
     def log_initial_app(self, app_name: str) -> None:
         """Log initial application detection."""
@@ -172,7 +172,7 @@ class ActivityLogger:
 
         now_str = datetime.now().strftime("%H:%M:%S")
         print(
-            f"[{now_str}] 💤 User idle detected "
+            f"[{now_str}] [IDLE] User idle detected "
             f"(no input for {idle_time: .0f}s) - pausing tracking"
         )
 
@@ -183,7 +183,7 @@ class ActivityLogger:
 
         now_str = datetime.now().strftime("%H:%M:%S")
         print(
-            f"[{now_str}] ⚡ User activity resumed "
+            f"[{now_str}] [ACTIVE] User activity resumed "
             f"(was idle for {idle_duration: .0f}s) - resuming tracking"
         )
 
