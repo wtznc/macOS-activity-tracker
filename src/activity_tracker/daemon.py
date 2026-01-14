@@ -4,6 +4,7 @@ Daemon wrapper for the activity tracker.
 Handles running the tracker as a background service.
 """
 
+import fcntl
 import os
 import signal
 
@@ -56,9 +57,15 @@ class ActivityDaemon:
         sys.stdout.flush()
         sys.stderr.flush()
 
-        # Write pidfile
-        with open(self.pidfile, "w") as f:
-            f.write(str(os.getpid()))
+        # Write pidfile with exclusive lock to prevent race conditions
+        try:
+            with open(self.pidfile, "w") as f:
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                f.write(str(os.getpid()))
+                f.flush()
+        except BlockingIOError:
+            sys.stderr.write("Another daemon instance is already starting\n")
+            sys.exit(1)
 
     def start(self):
         """Start the daemon."""
