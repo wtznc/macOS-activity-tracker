@@ -16,7 +16,7 @@ class SyncManager:
     def __init__(
         self,
         data_dir: str = "activity_data",
-        endpoint: str = "http://192.168.0.244:8000/data/macos-activity",
+        endpoint: str = "https://192.168.0.244:8000/data/macos-activity",
     ):
         self.endpoint = endpoint
 
