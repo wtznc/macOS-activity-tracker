@@ -121,10 +121,6 @@ class ActivityTracker:
         self._save_final_data(current_app, start_time)
         self.logger.log_tracking_stop()
 
-    # Maximum allowed total time per minute interval (in seconds).
-    # Set to 65 to allow slight overflow due to timing imprecision.
-    MAX_MINUTE_TOTAL_SECONDS = 65
-
     def _check_save_interval(
         self, current_app: Optional[str], start_time: float
     ) -> float:
@@ -208,7 +204,7 @@ class ActivityTracker:
     def _apply_overflow_scaling(self, data: dict) -> dict:
         """Scale down durations if total exceeds maximum allowed time."""
         total_time = sum(data.values())
-        if total_time > self.MAX_MINUTE_TOTAL_SECONDS:
+        if total_time > MAX_MINUTE_TOTAL_SECONDS:
             scale_factor = 60.0 / total_time
             return {app: duration * scale_factor for app, duration in data.items()}
         return data
