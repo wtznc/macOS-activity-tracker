@@ -89,9 +89,11 @@ class WindowTitleDetector:
                 if title:
                     self._update_cache(app_name, title)
                     return title
+                # AppleScript failed/timed out - fallback to Quartz
+                self._metrics["quartz_fallbacks"] += 1
 
-            # Fallback to Quartz
-            title = self._get_title_via_quartz(app_name)
+            # Use Quartz for unsupported apps or as fallback
+            title = self._get_title_via_quartz(app_name, count_as_fallback=False)
             if title:
                 self._update_cache(app_name, title)
             return title
@@ -127,9 +129,14 @@ class WindowTitleDetector:
 
     def reset_metrics(self) -> None:
         """Reset performance metrics."""
-        for key in self._metrics:
-            if isinstance(self._metrics[key], (int, float)):
-                self._metrics[key] = 0 if isinstance(self._metrics[key], int) else 0.0
+        self._metrics = {
+            "total_calls": 0,
+            "cache_hits": 0,
+            "applescript_calls": 0,
+            "applescript_timeouts": 0,
+            "applescript_total_time": 0.0,
+            "quartz_fallbacks": 0,
+        }
 
     def _get_title_via_applescript(self, app_name: str) -> Optional[str]:
         """Get window title using AppleScript with timeout and metrics."""
@@ -181,9 +188,12 @@ class WindowTitleDetector:
 
         return None
 
-    def _get_title_via_quartz(self, app_name: str) -> Optional[str]:
+    def _get_title_via_quartz(
+        self, app_name: str, count_as_fallback: bool = True
+    ) -> Optional[str]:
         """Get window title using Quartz framework."""
-        self._metrics["quartz_fallbacks"] += 1
+        if count_as_fallback:
+            self._metrics["quartz_fallbacks"] += 1
         try:
             window_list = CGWindowListCopyWindowInfo(
                 kCGWindowListOptionOnScreenOnly, kCGNullWindowID

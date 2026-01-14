@@ -46,8 +46,8 @@ class TestWindowTitleDetector(unittest.TestCase):
         # Should retrieve from cache immediately
         self.assertEqual(detector._get_from_cache(app_name), title)
 
-        # Wait for expiration
-        time.sleep(0.15)
+        # Wait for expiration (slightly longer than TTL to ensure expiration)
+        time.sleep(0.11)
 
         # Should return None after expiration
         self.assertIsNone(detector._get_from_cache(app_name))
