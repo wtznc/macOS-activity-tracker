@@ -29,17 +29,20 @@ except ImportError:
     exit(1)
 
 try:
+    from activity_tracker.config import DEFAULT_CONFIG
     from activity_tracker.core import ActivityTracker
     from activity_tracker.sync import SyncManager
     from activity_tracker.utils import get_data_directory
 except ImportError:
     try:
+        from .config import DEFAULT_CONFIG
         from .core import ActivityTracker
         from .sync import SyncManager
         from .utils import get_data_directory
     except ImportError:
         # If running as script, add parent directory to path
         sys.path.insert(0, str(Path(__file__).parent))
+        from config import DEFAULT_CONFIG  # type: ignore[import,no-redef]
         from core import ActivityTracker  # type: ignore[import,no-redef]
         from sync import SyncManager  # type: ignore[import,no-redef]
         from utils import get_data_directory  # type: ignore[import,no-redef]
@@ -54,9 +57,9 @@ class ActivityTrackerMenuBarDelegate(NSObject):
         self.tracker = None
         self.tracker_thread = None
         self.is_running = False
-        self.verbose_mode = True  # Enable verbose logging by default
-        self.fast_mode = False
-        self.idle_threshold = 300  # 5 minutes default
+        self.verbose_mode = DEFAULT_CONFIG["verbose_logging"]
+        self.fast_mode = DEFAULT_CONFIG["fast_mode"]
+        self.idle_threshold = DEFAULT_CONFIG["idle_threshold"]
         self.sync_manager = SyncManager(data_dir=str(get_data_directory()))
 
         # Create status bar item
