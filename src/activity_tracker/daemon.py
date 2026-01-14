@@ -41,7 +41,7 @@ class ActivityDaemon:
         # Decouple from parent environment
         os.chdir("/")
         os.setsid()
-        os.umask(0)
+        os.umask(0o077)  # Restrictive umask: owner read/write only
 
         try:
             # Second fork
