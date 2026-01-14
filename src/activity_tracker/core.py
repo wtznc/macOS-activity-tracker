@@ -114,73 +114,103 @@ class ActivityTracker:
         self._save_final_data(current_app, start_time)
         self.logger.log_tracking_stop()
 
+    # Maximum allowed total time per minute interval (in seconds).
+    # Set to 65 to allow slight overflow due to timing imprecision.
+    MAX_MINUTE_TOTAL_SECONDS = 65
+
     def _check_save_interval(
         self, current_app: Optional[str], start_time: float
     ) -> float:
         """Check if we need to save data (every minute). Returns updated start_time."""
+        if not self._is_minute_boundary():
+            return start_time
+
+        session_data = self._get_bounded_session_data(current_app, start_time)
+        self._save_and_log(session_data)
+        return time.time()
+
+    def _is_minute_boundary(self) -> bool:
+        """Check if current time has crossed a minute boundary."""
         now = datetime.now()
         if now.minute != self.last_check_time.minute:
-            # Get and clear existing session data
-            existing_session_data = self.monitor.clear_session_data()
-
-            # Calculate time attribution for current app
-            time_since_boundary = 0.0
-            if current_app:
-                time_since_boundary = self._calculate_time_in_current_minute(
-                    start_time, self.last_check_time
-                )
-                time_since_boundary = max(
-                    0.0, min(time_since_boundary, 60.0)
-                )  # Bound to [0, 60]
-
-            # Create data for this minute with proper time bounds
-            minute_bounded_data = {}
-
-            # Include existing session data but bound it to prevent overflow
-            last_boundary_timestamp = self.last_check_time.timestamp()
-            current_timestamp = time.time()
-            max_possible_time = current_timestamp - last_boundary_timestamp
-            max_reasonable_time = min(60.0, max_possible_time)
-
-            for app_name, duration in existing_session_data.items():
-                # For non-current apps, use existing duration but cap it
-                if app_name != current_app:
-                    bounded_duration = min(duration, max_reasonable_time)
-                    if bounded_duration > 0:
-                        minute_bounded_data[app_name] = bounded_duration
-                else:
-                    # For current app, replace with time since boundary
-                    if time_since_boundary > 0:
-                        minute_bounded_data[app_name] = time_since_boundary
-
-            # Add current app if not already processed
-            if (
-                current_app
-                and current_app not in minute_bounded_data
-                and time_since_boundary > 0
-            ):
-                minute_bounded_data[current_app] = time_since_boundary
-
-            # Final safety check: ensure total doesn't exceed reasonable bounds
-            total_time = sum(minute_bounded_data.values())
-            if total_time > 65:  # Allow slight overflow for edge cases
-                # Proportionally scale down all durations
-                scale_factor = 60.0 / total_time
-                minute_bounded_data = {
-                    app: duration * scale_factor
-                    for app, duration in minute_bounded_data.items()
-                }
-                total_time = sum(minute_bounded_data.values())
-
-            # Save the properly bounded data
-            self.data_store.merge_and_save_session_data(minute_bounded_data)
-            self.logger.log_data_save(total_time)
-
             self.last_check_time = now
-            # Reset start_time to prevent accumulation across minute boundaries
-            return time.time()
+            return True
+        return False
 
-        return start_time
+    def _get_bounded_session_data(
+        self, current_app: Optional[str], start_time: float
+    ) -> dict:
+        """Get session data with proper time bounds for the minute interval."""
+        existing_session_data = self.monitor.clear_session_data()
+
+        # Calculate time attribution for current app
+        time_since_boundary = self._get_current_app_time(current_app, start_time)
+
+        # Build bounded data
+        minute_bounded_data = self._build_bounded_data(
+            existing_session_data, current_app, time_since_boundary
+        )
+
+        # Apply overflow scaling if needed
+        return self._apply_overflow_scaling(minute_bounded_data)
+
+    def _get_current_app_time(
+        self, current_app: Optional[str], start_time: float
+    ) -> float:
+        """Calculate bounded time for current app in this minute."""
+        if not current_app:
+            return 0.0
+
+        time_since_boundary = self._calculate_time_in_current_minute(
+            start_time, self.last_check_time
+        )
+        return max(0.0, min(time_since_boundary, 60.0))
+
+    def _build_bounded_data(
+        self,
+        session_data: dict,
+        current_app: Optional[str],
+        time_since_boundary: float,
+    ) -> dict:
+        """Build minute-bounded data from session data."""
+        last_boundary_timestamp = self.last_check_time.timestamp()
+        current_timestamp = time.time()
+        max_possible_time = current_timestamp - last_boundary_timestamp
+        max_reasonable_time = min(60.0, max_possible_time)
+
+        minute_bounded_data = {}
+
+        for app_name, duration in session_data.items():
+            if app_name != current_app:
+                bounded_duration = min(duration, max_reasonable_time)
+                if bounded_duration > 0:
+                    minute_bounded_data[app_name] = bounded_duration
+            elif time_since_boundary > 0:
+                minute_bounded_data[app_name] = time_since_boundary
+
+        # Add current app if not already processed
+        if (
+            current_app
+            and current_app not in minute_bounded_data
+            and time_since_boundary > 0
+        ):
+            minute_bounded_data[current_app] = time_since_boundary
+
+        return minute_bounded_data
+
+    def _apply_overflow_scaling(self, data: dict) -> dict:
+        """Scale down durations if total exceeds maximum allowed time."""
+        total_time = sum(data.values())
+        if total_time > self.MAX_MINUTE_TOTAL_SECONDS:
+            scale_factor = 60.0 / total_time
+            return {app: duration * scale_factor for app, duration in data.items()}
+        return data
+
+    def _save_and_log(self, session_data: dict) -> None:
+        """Save session data and log the operation."""
+        self.data_store.merge_and_save_session_data(session_data)
+        total_time = sum(session_data.values())
+        self.logger.log_data_save(total_time)
 
     def _calculate_time_in_current_minute(
         self, start_time: float, last_boundary: datetime
