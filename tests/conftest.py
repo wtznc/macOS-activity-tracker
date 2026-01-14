@@ -1,9 +1,17 @@
 """Pytest configuration and fixtures."""
 
 import shutil
+import sys
 import tempfile
+from unittest.mock import MagicMock
 
 import pytest
+
+# Mock macOS-specific modules for testing on non-macOS systems
+if "AppKit" not in sys.modules:
+    sys.modules["AppKit"] = MagicMock()
+    sys.modules["Quartz"] = MagicMock()
+    sys.modules["Foundation"] = MagicMock()
 
 
 @pytest.fixture
