@@ -62,6 +62,16 @@ class HttpSyncClient:
     def __init__(self, endpoint: str):
         self.endpoint = endpoint
         self.payload_builder = SyncPayloadBuilder()
+        self._warn_if_insecure()
+
+    def _warn_if_insecure(self) -> None:
+        """Warn if endpoint uses insecure HTTP instead of HTTPS."""
+        if self.endpoint and self.endpoint.startswith("http://"):
+            print(
+                "[WARN] Sync endpoint uses HTTP instead of HTTPS. "
+                "Activity data may be transmitted unencrypted. "
+                "Consider using HTTPS for secure data transmission."
+            )
 
     def sync_hour_data(self, hour_key: str, hour_data: Dict) -> bool:
         """Sync single hour of data to endpoint."""
