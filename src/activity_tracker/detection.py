@@ -33,7 +33,7 @@ class ApplicationDetector:
             active_app = workspace.activeApplication()
             if active_app:
                 return active_app["NSApplicationName"]
-        except Exception as e:
+        except (KeyError, AttributeError, RuntimeError) as e:
             print(f"Error getting active application: {e}")
         return None
 
@@ -52,22 +52,97 @@ class WindowTitleDetector:
         "Xcode": "Xcode",
     }
 
+    def __init__(self, cache_ttl: float = 2.0, applescript_timeout: float = 0.5):
+        """
+        Initialize the WindowTitleDetector with caching and configurable timeout.
+
+        Args:
+            cache_ttl: Time-to-live for cached window titles in seconds.
+            applescript_timeout: Timeout for AppleScript calls in seconds.
+        """
+        self.cache_ttl = cache_ttl
+        self.applescript_timeout = applescript_timeout
+        self._title_cache: dict[str, tuple[str, float]] = {}
+        self._metrics = {
+            "total_calls": 0,
+            "cache_hits": 0,
+            "applescript_calls": 0,
+            "applescript_timeouts": 0,
+            "applescript_total_time": 0.0,
+            "quartz_fallbacks": 0,
+        }
+
     def get_window_title(self, app_name: str) -> Optional[str]:
         """Get the title of the frontmost window for the given application."""
+        self._metrics["total_calls"] += 1
+
         try:
+            # Check cache first
+            cached_title = self._get_from_cache(app_name)
+            if cached_title is not None:
+                self._metrics["cache_hits"] += 1
+                return cached_title
+
+            # Try AppleScript for supported apps
             if app_name in self.APP_MAPPING:
                 title = self._get_title_via_applescript(app_name)
                 if title:
+                    self._update_cache(app_name, title)
                     return title
+                # AppleScript failed/timed out - use Quartz as fallback
+                title = self._get_title_via_quartz(app_name, count_as_fallback=True)
+                if title:
+                    self._update_cache(app_name, title)
+                return title
 
-            return self._get_title_via_quartz(app_name)
+            # Use Quartz for unsupported apps (not a fallback, primary method)
+            title = self._get_title_via_quartz(app_name, count_as_fallback=False)
+            if title:
+                self._update_cache(app_name, title)
+            return title
 
-        except Exception as e:
+        except (subprocess.SubprocessError, KeyError, TypeError, RuntimeError) as e:
             print(f"Warning: Failed to get window title for {app_name}: {e}")
         return None
 
+    def _get_from_cache(self, app_name: str) -> Optional[str]:
+        """Get window title from cache if not expired."""
+        if app_name in self._title_cache:
+            title, timestamp = self._title_cache[app_name]
+            if time.time() - timestamp < self.cache_ttl:
+                return title
+            # Remove expired entry
+            del self._title_cache[app_name]
+        return None
+
+    def _update_cache(self, app_name: str, title: str) -> None:
+        """Update cache with new window title."""
+        self._title_cache[app_name] = (title, time.time())
+
+    def get_metrics(self) -> dict:
+        """Get performance metrics for AppleScript calls."""
+        metrics = self._metrics.copy()
+        if metrics["applescript_calls"] > 0:
+            metrics["avg_applescript_time"] = (
+                metrics["applescript_total_time"] / metrics["applescript_calls"]
+            )
+        else:
+            metrics["avg_applescript_time"] = 0.0
+        return metrics
+
+    def reset_metrics(self) -> None:
+        """Reset performance metrics."""
+        self._metrics = {
+            "total_calls": 0,
+            "cache_hits": 0,
+            "applescript_calls": 0,
+            "applescript_timeouts": 0,
+            "applescript_total_time": 0.0,
+            "quartz_fallbacks": 0,
+        }
+
     def _get_title_via_applescript(self, app_name: str) -> Optional[str]:
-        """Get window title using AppleScript."""
+        """Get window title using AppleScript with timeout and metrics."""
         if app_name in ["Visual Studio Code", "Code"]:
             script = (
                 'tell application "System Events"\n'
@@ -94,19 +169,34 @@ class WindowTitleDetector:
             )
 
         try:
+            self._metrics["applescript_calls"] += 1
+            start_time = time.time()
+
             result = subprocess.run(
-                ["osascript", "-e", script], capture_output=True, text=True, timeout=2
+                ["osascript", "-e", script],
+                capture_output=True,
+                text=True,
+                timeout=self.applescript_timeout,
             )
+
+            elapsed = time.time() - start_time
+            self._metrics["applescript_total_time"] += elapsed
 
             if result.returncode == 0 and result.stdout.strip():
                 return result.stdout.strip()
         except subprocess.TimeoutExpired:
+            self._metrics["applescript_timeouts"] += 1
+            # Fallback to Quartz will be handled by the caller
             pass
 
         return None
 
-    def _get_title_via_quartz(self, app_name: str) -> Optional[str]:
+    def _get_title_via_quartz(
+        self, app_name: str, count_as_fallback: bool = True
+    ) -> Optional[str]:
         """Get window title using Quartz framework."""
+        if count_as_fallback:
+            self._metrics["quartz_fallbacks"] += 1
         try:
             window_list = CGWindowListCopyWindowInfo(
                 kCGWindowListOptionOnScreenOnly, kCGNullWindowID
@@ -123,7 +213,7 @@ class WindowTitleDetector:
             if app_name in ["Code", "Visual Studio Code"]:
                 return self._get_vscode_fallback_title(window_list)
 
-        except Exception as e:
+        except (KeyError, TypeError, RuntimeError) as e:
             print(f"Warning: Failed to get window title: {e}")
 
         return None
@@ -158,7 +248,7 @@ class IdleDetector:
             return CGEventSourceSecondsSinceLastEventType(
                 kCGEventSourceStateHIDSystemState, kCGAnyInputEventType
             )
-        except Exception as e:
+        except (RuntimeError, OSError) as e:
             print(f"Error getting system idle time: {e}")
             return 0.0
 
@@ -223,7 +313,7 @@ class TitleCleaner:
             import unicodedata
 
             title = unicodedata.normalize("NFC", title)
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             print(f"Warning: Failed to normalize Unicode in title: {e}")
 
         # Apply replacements

@@ -4,6 +4,7 @@ Daemon wrapper for the activity tracker.
 Handles running the tracker as a background service.
 """
 
+import fcntl
 import os
 import signal
 
@@ -41,7 +42,7 @@ class ActivityDaemon:
         # Decouple from parent environment
         os.chdir("/")
         os.setsid()
-        os.umask(0)
+        os.umask(0o077)  # Restrictive umask: owner read/write only
 
         try:
             # Second fork
@@ -56,24 +57,42 @@ class ActivityDaemon:
         sys.stdout.flush()
         sys.stderr.flush()
 
-        # Write pidfile
-        with open(self.pidfile, "w") as f:
-            f.write(str(os.getpid()))
+        # Write pidfile with exclusive lock to prevent race conditions
+        try:
+            with open(self.pidfile, "w") as f:
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                f.write(str(os.getpid()))
+                f.flush()
+        except BlockingIOError:
+            sys.stderr.write("Another daemon instance is already starting\n")
+            sys.exit(1)
 
     def start(self):
         """Start the daemon."""
         # Check if already running
         if os.path.exists(self.pidfile):
-            with open(self.pidfile, "r") as f:
-                pid = int(f.read().strip())
-
             try:
-                os.kill(pid, 0)  # Check if process exists
-                print(f"Daemon already running with PID {pid}")
-                return
-            except OSError:
-                # Process doesn't exist, remove stale pidfile
-                os.remove(self.pidfile)
+                with open(self.pidfile, "r") as f:
+                    content = f.read().strip()
+                    if not content:
+                        # Empty PID file - remove it
+                        os.remove(self.pidfile)
+                    else:
+                        pid = int(content)
+                        try:
+                            os.kill(pid, 0)  # Check if process exists
+                            print(f"Daemon already running with PID {pid}")
+                            return
+                        except OSError:
+                            # Process doesn't exist, remove stale pidfile
+                            os.remove(self.pidfile)
+            except (ValueError, IOError) as e:
+                # Corrupt PID file (invalid content or read error) - remove it
+                print(f"Removing corrupt PID file: {e}")
+                try:
+                    os.remove(self.pidfile)
+                except OSError:
+                    pass
 
         print("Starting activity tracker daemon...")
         self.daemonize()
