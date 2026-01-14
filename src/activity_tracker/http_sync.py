@@ -77,22 +77,22 @@ class HttpSyncClient:
 
             if response.status_code in [200, 201]:
                 print(
-                    f"✓ Synced {hour_key}: {hour_data['total_time']: .1f}s across "
+                    f"[OK] Synced {hour_key}: {hour_data['total_time']: .1f}s across "
                     f"{hour_data['files_processed']} files"
                 )
                 return True
             else:
                 print(
-                    f"✗ Sync failed for {hour_key}: "
+                    f"[FAIL] Sync failed for {hour_key}: "
                     f"HTTP {response.status_code} - {response.text}"
                 )
                 return False
 
         except requests.exceptions.RequestException as e:
-            print(f"✗ Network error syncing {hour_key}: {e}")
+            print(f"[FAIL] Network error syncing {hour_key}: {e}")
             return False
         except Exception as e:
-            print(f"✗ Error syncing {hour_key}: {e}")
+            print(f"[FAIL] Error syncing {hour_key}: {e}")
             return False
 
     def test_connection(self) -> bool:

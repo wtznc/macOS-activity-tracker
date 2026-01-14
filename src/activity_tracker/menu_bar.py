@@ -290,17 +290,17 @@ class ActivityTrackerMenuBarDelegate(NSObject):
 
             if results["failed"] > 0:
                 alert_text = (
-                    f"⚠️ {results['failed']} hours failed to sync.\n"
+                    f"[WARN] {results['failed']} hours failed to sync.\n"
                     f"Check network connection.\n\n"
                     f"Synced: {results['synced']}\nSkipped: {results['skipped']}"
                 )
             elif results["synced"] > 0:
                 alert_text = (
-                    f"✓ Successfully synced {results['synced']} hours of data\n\n"
+                    f"[OK] Successfully synced {results['synced']} hours of data\n\n"
                     f"Skipped: {results['skipped']} (already synced)"
                 )
             else:
-                alert_text = "ℹ️ All data already synced\n\nNo new data to upload"
+                alert_text = "[INFO] All data already synced\n\nNo new data to upload"
 
             alert.setInformativeText_(alert_text)
             alert.addButtonWithTitle_("OK")
@@ -321,7 +321,7 @@ class ActivityTrackerMenuBarDelegate(NSObject):
             error_alert.addButtonWithTitle_("OK")
             error_alert.runModal()
 
-            print(f"✗ Sync error: {e}")
+            print(f"[FAIL] Sync error: {e}")
 
     @objc.IBAction
     def showSyncStatus_(self, sender):
