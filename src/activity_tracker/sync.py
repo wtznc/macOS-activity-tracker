@@ -17,7 +17,7 @@ class SyncManager:
         self,
         data_dir: str = "activity_data",
         endpoint: str = "",
-        auth_token: str = "",
+        auth_token: str = "",  # nosec B107
     ):
         self.endpoint = endpoint
         self.auth_token = auth_token
@@ -48,7 +48,9 @@ class SyncManager:
         """Sync all available data."""
         if not self.endpoint:
             print("Error: No sync endpoint configured.")
-            print("Set ACTIVITY_TRACKER_ENDPOINT environment variable or provide endpoint parameter.")
+            print(
+                "Set ACTIVITY_TRACKER_ENDPOINT environment variable or provide endpoint parameter."
+            )
             return {"synced": 0, "failed": 0, "skipped": 0}
 
         files_by_hour = self.data_aggregator.group_files_by_hour()

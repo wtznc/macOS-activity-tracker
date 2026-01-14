@@ -18,16 +18,21 @@ class TestActivityDaemon(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.pid_file = os.path.join(self.temp_dir, "test.pid")
 
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.daemon import ActivityDaemon
+
             self.daemon = ActivityDaemon(pidfile=self.pid_file)
 
     def tearDown(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir)
 
     def test_initialization(self):
@@ -37,11 +42,15 @@ class TestActivityDaemon(unittest.TestCase):
 
     def test_initialization_default_pidfile(self):
         """Test default PID file location."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.daemon import ActivityDaemon
+
             daemon = ActivityDaemon()
 
         self.assertIn("activity_tracker.pid", daemon.pidfile)
@@ -124,6 +133,7 @@ class TestDaemonPidFileHandling(unittest.TestCase):
     def tearDown(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir)
 
     def test_corrupt_pidfile_handling(self):
@@ -132,11 +142,15 @@ class TestDaemonPidFileHandling(unittest.TestCase):
         with open(self.pid_file, "w") as f:
             f.write("not_a_number")
 
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.daemon import ActivityDaemon
+
             daemon = ActivityDaemon(pidfile=self.pid_file)
 
         # Should handle corrupt file gracefully
@@ -151,11 +165,15 @@ class TestDaemonPidFileHandling(unittest.TestCase):
         with open(self.pid_file, "w") as f:
             pass
 
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.daemon import ActivityDaemon
+
             daemon = ActivityDaemon(pidfile=self.pid_file)
 
         # Should handle empty file gracefully

@@ -16,6 +16,7 @@ class TestGetDataDirectory(unittest.TestCase):
     def test_returns_path_object(self):
         """Test that function returns a Path object."""
         from activity_tracker.utils import get_data_directory
+
         result = get_data_directory()
         self.assertIsInstance(result, Path)
 
@@ -23,6 +24,7 @@ class TestGetDataDirectory(unittest.TestCase):
     def test_returns_macos_path_on_darwin(self):
         """Test macOS-specific path on darwin platform."""
         from activity_tracker.utils import get_data_directory
+
         result = get_data_directory()
         self.assertIn("Library", str(result))
         self.assertIn("Application Support", str(result))
@@ -31,6 +33,7 @@ class TestGetDataDirectory(unittest.TestCase):
     def test_directory_exists_after_call(self):
         """Test that directory is created if it doesn't exist."""
         from activity_tracker.utils import get_data_directory
+
         result = get_data_directory()
         self.assertTrue(result.exists())
 
@@ -45,6 +48,7 @@ class TestViewActivityFile(unittest.TestCase):
     def tearDown(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir)
 
     def test_view_valid_activity_file(self):
@@ -109,6 +113,7 @@ class TestViewActivityFileParsing(unittest.TestCase):
     def tearDown(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir)
 
     def test_parses_standard_filename(self):

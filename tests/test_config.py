@@ -17,11 +17,13 @@ class TestConfig(unittest.TestCase):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
         from activity_tracker.config import Config
+
         self.config = Config(config_dir=self.temp_dir)
 
     def tearDown(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir)
 
     def test_initialization(self):
@@ -48,10 +50,12 @@ class TestConfig(unittest.TestCase):
 
     def test_update_multiple_values(self):
         """Test updating multiple values at once."""
-        self.config.update({
-            "idle_threshold": 600,
-            "fast_mode": True,
-        })
+        self.config.update(
+            {
+                "idle_threshold": 600,
+                "fast_mode": True,
+            }
+        )
         self.assertEqual(self.config.idle_threshold, 600)
         self.assertTrue(self.config.fast_mode)
 
@@ -76,6 +80,7 @@ class TestConfig(unittest.TestCase):
 
         # Create a new config instance
         from activity_tracker.config import Config
+
         new_config = Config(config_dir=self.temp_dir)
 
         self.assertEqual(new_config.idle_threshold, 600)
@@ -105,6 +110,7 @@ class TestConfigFileHandling(unittest.TestCase):
     def tearDown(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir)
 
     def test_handles_corrupt_config_file(self):
@@ -117,6 +123,7 @@ class TestConfigFileHandling(unittest.TestCase):
             f.write("not valid json {{{")
 
         from activity_tracker.config import Config
+
         config = Config(config_dir=self.temp_dir)
 
         # Should use default values
@@ -132,6 +139,7 @@ class TestConfigFileHandling(unittest.TestCase):
             json.dump({"idle_threshold": 600}, f)
 
         from activity_tracker.config import Config
+
         config = Config(config_dir=self.temp_dir)
 
         # Custom value should be used
@@ -147,6 +155,7 @@ class TestLoadConfigFromEnv(unittest.TestCase):
         """Test loading string values from environment."""
         with patch.dict(os.environ, {"ACTIVITY_TRACKER_ENDPOINT": "https://test.com"}):
             from activity_tracker.config import load_config_from_env
+
             env_config = load_config_from_env()
 
         self.assertEqual(env_config.get("sync_endpoint"), "https://test.com")
@@ -155,6 +164,7 @@ class TestLoadConfigFromEnv(unittest.TestCase):
         """Test loading integer values from environment."""
         with patch.dict(os.environ, {"ACTIVITY_TRACKER_IDLE_THRESHOLD": "600"}):
             from activity_tracker.config import load_config_from_env
+
             env_config = load_config_from_env()
 
         self.assertEqual(env_config.get("idle_threshold"), 600)
@@ -163,15 +173,19 @@ class TestLoadConfigFromEnv(unittest.TestCase):
         """Test loading boolean values from environment."""
         with patch.dict(os.environ, {"ACTIVITY_TRACKER_FAST_MODE": "true"}):
             from activity_tracker.config import load_config_from_env
+
             env_config = load_config_from_env()
 
         self.assertTrue(env_config.get("fast_mode"))
 
     def test_handles_invalid_integer(self):
         """Test handling of invalid integer values."""
-        with patch.dict(os.environ, {"ACTIVITY_TRACKER_IDLE_THRESHOLD": "not_a_number"}):
+        with patch.dict(
+            os.environ, {"ACTIVITY_TRACKER_IDLE_THRESHOLD": "not_a_number"}
+        ):
             with patch("builtins.print"):
                 from activity_tracker.config import load_config_from_env
+
                 env_config = load_config_from_env()
 
         # Should not set invalid value
@@ -184,9 +198,11 @@ class TestGetConfig(unittest.TestCase):
     def test_returns_config_instance(self):
         """Test that get_config returns a Config instance."""
         from activity_tracker.config import get_config
+
         config = get_config()
 
         from activity_tracker.config import Config
+
         self.assertIsInstance(config, Config)
 
     def test_returns_same_instance(self):

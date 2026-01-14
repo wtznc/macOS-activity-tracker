@@ -13,20 +13,22 @@ class TestApplicationDetector(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         # Import is done inside method to avoid macOS-specific import errors
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.detection import ApplicationDetector
+
             self.detector = ApplicationDetector()
 
     @patch("activity_tracker.detection.NSWorkspace")
     def test_get_active_application_returns_name(self, mock_workspace_class):
         """Test that get_active_application returns app name."""
         mock_workspace = Mock()
-        mock_workspace.activeApplication.return_value = {
-            "NSApplicationName": "Safari"
-        }
+        mock_workspace.activeApplication.return_value = {"NSApplicationName": "Safari"}
         mock_workspace_class.sharedWorkspace.return_value = mock_workspace
 
         result = self.detector.get_active_application()
@@ -34,7 +36,9 @@ class TestApplicationDetector(unittest.TestCase):
         self.assertEqual(result, "Safari")
 
     @patch("activity_tracker.detection.NSWorkspace")
-    def test_get_active_application_returns_none_when_no_app(self, mock_workspace_class):
+    def test_get_active_application_returns_none_when_no_app(
+        self, mock_workspace_class
+    ):
         """Test that get_active_application returns None when no active app."""
         mock_workspace = Mock()
         mock_workspace.activeApplication.return_value = None
@@ -59,11 +63,15 @@ class TestWindowTitleDetector(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.detection import WindowTitleDetector
+
             self.detector = WindowTitleDetector()
 
     def test_app_mapping_contains_common_apps(self):
@@ -105,11 +113,15 @@ class TestIdleDetector(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.detection import IdleDetector
+
             self.detector = IdleDetector(idle_threshold=300)
 
     def test_initialization(self):
@@ -166,11 +178,15 @@ class TestTitleCleaner(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.detection import TitleCleaner
+
             self.cleaner = TitleCleaner()
 
     def test_clean_title_handles_empty_string(self):

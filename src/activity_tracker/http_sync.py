@@ -59,7 +59,7 @@ class SyncPayloadBuilder:
 class HttpSyncClient:
     """HTTP client for syncing data to remote endpoints."""
 
-    def __init__(self, endpoint: str, auth_token: str = ""):
+    def __init__(self, endpoint: str, auth_token: str = ""):  # nosec B107
         self.endpoint = endpoint
         self.auth_token = auth_token
         self.payload_builder = SyncPayloadBuilder()

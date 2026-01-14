@@ -14,6 +14,7 @@ class TestDeviceIdentifier(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         from activity_tracker.http_sync import DeviceIdentifier
+
         self.identifier = DeviceIdentifier()
 
     @patch("socket.gethostname")
@@ -63,6 +64,7 @@ class TestSyncPayloadBuilder(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         from activity_tracker.http_sync import SyncPayloadBuilder
+
         self.builder = SyncPayloadBuilder()
 
     def test_create_sync_payload(self):
@@ -75,7 +77,9 @@ class TestSyncPayloadBuilder(unittest.TestCase):
         }
 
         with patch.object(
-            self.builder.device_identifier, "get_device_name", return_value="test-device"
+            self.builder.device_identifier,
+            "get_device_name",
+            return_value="test-device",
         ):
             result = self.builder.create_sync_payload(hour_key, hour_data)
 
@@ -108,6 +112,7 @@ class TestHttpSyncClient(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         from activity_tracker.http_sync import HttpSyncClient
+
         self.client = HttpSyncClient(endpoint="https://test.example.com/api")
 
     def test_initialization(self):
@@ -195,6 +200,7 @@ class TestSyncResultCollector(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         from activity_tracker.http_sync import SyncResultCollector
+
         self.collector = SyncResultCollector()
 
     def test_initialization(self):

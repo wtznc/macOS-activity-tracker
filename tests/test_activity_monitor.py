@@ -11,11 +11,15 @@ class TestActivityMonitor(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.activity_monitor import ActivityMonitor
+
             self.monitor = ActivityMonitor(
                 include_window_titles=True,
                 idle_threshold=300,
@@ -31,11 +35,15 @@ class TestActivityMonitor(unittest.TestCase):
 
     def test_initialization_without_window_titles(self):
         """Test initialization without window titles."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.activity_monitor import ActivityMonitor
+
             monitor = ActivityMonitor(include_window_titles=False)
 
         self.assertFalse(monitor.include_window_titles)
@@ -79,11 +87,15 @@ class TestActivityMonitorAppChange(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.activity_monitor import ActivityMonitor
+
             self.monitor = ActivityMonitor(
                 include_window_titles=False,
                 debounce_delay=1.0,
@@ -137,11 +149,15 @@ class TestActivityLogger(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.activity_monitor import ActivityLogger
+
             self.logger = ActivityLogger(verbose=True)
 
     def test_initialization(self):
@@ -150,11 +166,15 @@ class TestActivityLogger(unittest.TestCase):
 
     def test_initialization_quiet_mode(self):
         """Test ActivityLogger in quiet mode."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.activity_monitor import ActivityLogger
+
             logger = ActivityLogger(verbose=False)
         self.assertFalse(logger.verbose)
 
@@ -167,11 +187,15 @@ class TestActivityLogger(unittest.TestCase):
     @patch("builtins.print")
     def test_log_tracking_start_quiet(self, mock_print):
         """Test tracking start log in quiet mode."""
-        with patch.dict("sys.modules", {
-            "AppKit": MagicMock(),
-            "Quartz": MagicMock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
             from activity_tracker.activity_monitor import ActivityLogger
+
             logger = ActivityLogger(verbose=False)
 
         logger.log_tracking_start(include_window_titles=True)
