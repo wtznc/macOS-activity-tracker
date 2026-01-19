@@ -360,8 +360,8 @@ Last sync: {status['last_sync'] if status['last_sync'] else 'Never'}"""
         """Open the data folder in Finder."""
         data_path = get_data_directory()
         subprocess.run(
-            ["open", str(data_path)], check=False
-        )  # nosec B603,B607 - Safe macOS open command
+            ["/usr/bin/open", str(data_path)], check=False
+        )  # nosec B603 - Safe macOS open command
 
     @objc.IBAction
     def quitApp_(self, sender):

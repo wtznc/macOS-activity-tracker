@@ -173,7 +173,7 @@ class WindowTitleDetector:
             start_time = time.time()
 
             result = subprocess.run(
-                ["osascript", "-e", script],
+                ["/usr/bin/osascript", "-e", script],  # nosec B603
                 capture_output=True,
                 text=True,
                 timeout=self.applescript_timeout,
