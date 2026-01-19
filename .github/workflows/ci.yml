@@ -66,6 +66,7 @@ jobs:
       if: matrix.python-version == '3.11' && github.event_name == 'push'
       run: |
         pip install coverage-badge
+        rm -f coverage.svg
         coverage-badge -o coverage.svg
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
