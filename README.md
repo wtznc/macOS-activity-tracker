@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![macOS](https://img.shields.io/badge/macOS-10.14+-green.svg)](https://www.apple.com/macos/)
-[![Coverage](https://img.shields.io/badge/coverage-52%25-orange.svg)](htmlcov/index.html)
+[![Coverage](coverage.svg)](htmlcov/index.html)
 
 A lightweight, privacy-focused macOS application that tracks your application usage and provides detailed insights into your digital productivity patterns.
 
