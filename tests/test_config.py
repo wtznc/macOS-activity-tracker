@@ -7,8 +7,6 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 
 class TestConfig(unittest.TestCase):
     """Test cases for Config class."""

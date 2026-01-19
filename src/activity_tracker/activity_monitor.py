@@ -50,10 +50,9 @@ class ActivityMonitor:
         self.app_detector = app_detector or ApplicationDetector()
         self.idle_detector = idle_detector or IdleDetector(self.config.idle_threshold)
 
+        self.window_detector: Optional[WindowTitleDetector] = None
         if self.config.include_window_titles:
             self.window_detector = window_detector or WindowTitleDetector()
-        else:
-            self.window_detector = None
 
         self.title_cleaner = TitleCleaner()
         self.session_tracker = SessionTracker()

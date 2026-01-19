@@ -7,8 +7,6 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 
 class TestActivityFileParser(unittest.TestCase):
     """Test cases for ActivityFileParser class."""

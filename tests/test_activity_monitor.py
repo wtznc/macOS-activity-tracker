@@ -1,9 +1,7 @@
 """Tests for activity_monitor module functionality."""
 
 import unittest
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 
 class TestActivityMonitor(unittest.TestCase):

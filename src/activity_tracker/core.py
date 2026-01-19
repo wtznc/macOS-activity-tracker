@@ -221,7 +221,8 @@ class ActivityTracker:
         current_time = time.time()
         last_boundary_timestamp = last_boundary.timestamp()
 
-        # If start_time is before the last minute boundary, only count time since boundary
+        # If start_time is before the last minute boundary,
+        # only count time since boundary
         if start_time < last_boundary_timestamp:
             return current_time - last_boundary_timestamp
         else:

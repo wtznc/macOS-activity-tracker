@@ -5,8 +5,6 @@ import time
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 
-import pytest
-
 
 class TestApplicationDetector(unittest.TestCase):
     """Test cases for ApplicationDetector class."""
