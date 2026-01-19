@@ -4,7 +4,6 @@ import os
 import signal
 import tempfile
 import unittest
-from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -58,8 +57,8 @@ class TestActivityDaemon(unittest.TestCase):
     def test_start_creates_pidfile_check(self):
         """Test that start checks for existing PID file."""
         # Create a stale PID file
-        with open(self.pid_file, "w") as f:
-            f.write("99999999")  # Non-existent PID
+        with open(self.pid_file, "w") as _:
+            _.write("99999999")  # Non-existent PID
 
         # The start method should remove stale PID file
         with patch.object(self.daemon, "daemonize"):
@@ -77,8 +76,8 @@ class TestActivityDaemon(unittest.TestCase):
     def test_status_with_stale_pidfile(self):
         """Test status with stale PID file."""
         # Create a stale PID file
-        with open(self.pid_file, "w") as f:
-            f.write("99999999")  # Non-existent PID
+        with open(self.pid_file, "w") as _:
+            _.write("99999999")  # Non-existent PID
 
         with patch("builtins.print"):
             self.daemon.status()
@@ -96,8 +95,8 @@ class TestActivityDaemon(unittest.TestCase):
     def test_stop_sends_sigterm(self, mock_kill):
         """Test that stop sends SIGTERM to running daemon."""
         # Create a PID file
-        with open(self.pid_file, "w") as f:
-            f.write("12345")
+        with open(self.pid_file, "w") as _:
+            _.write("12345")
 
         with patch("builtins.print"):
             self.daemon.stop()
@@ -110,8 +109,8 @@ class TestActivityDaemon(unittest.TestCase):
         self.daemon.tracker = Mock()
 
         # Create a PID file
-        with open(self.pid_file, "w") as f:
-            f.write("12345")
+        with open(self.pid_file, "w") as _:
+            _.write("12345")
 
         with pytest.raises(SystemExit):
             self.daemon._signal_handler(signal.SIGTERM, None)
@@ -162,7 +161,7 @@ class TestDaemonPidFileHandling(unittest.TestCase):
     def test_empty_pidfile_handling(self):
         """Test handling of empty PID file."""
         # Create an empty PID file
-        with open(self.pid_file, "w") as f:
+        with open(self.pid_file, "w") as _:
             pass
 
         with patch.dict(

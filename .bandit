@@ -1,6 +1,4 @@
 # Security configuration for bandit
 # B404 (subprocess import) is not globally skipped - uses inline # nosec B404 comments
 # for essential macOS system integrations only
-skips:
-  - B603  # subprocess calls with controlled input for osascript/open
-  - B607  # partial executable paths for standard macOS utilities
+skips: []

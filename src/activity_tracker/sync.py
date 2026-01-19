@@ -49,7 +49,8 @@ class SyncManager:
         if not self.endpoint:
             print("Error: No sync endpoint configured.")
             print(
-                "Set ACTIVITY_TRACKER_ENDPOINT environment variable or provide endpoint parameter."
+                "Set ACTIVITY_TRACKER_ENDPOINT environment variable or "
+                "provide endpoint parameter."
             )
             return {"synced": 0, "failed": 0, "skipped": 0}
 

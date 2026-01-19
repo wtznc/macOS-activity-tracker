@@ -11,7 +11,7 @@ DEFAULT_CONFIG = {
     "verbose_logging": True,
     "include_window_titles": True,
     "sync_endpoint": "",
-    "sync_auth_token": "",  # Bearer token for sync authentication
+    "sync_auth_token": "",  # nosec B105 - Bearer token for sync authentication
     "sync_interval": 3600,  # 1 hour
     "data_retention_days": 30,
     "auto_sync": False,
@@ -177,7 +177,7 @@ def load_config_from_env() -> Dict[str, Any]:
     env_mappings = {
         "ACTIVITY_TRACKER_DATA_DIR": "data_dir",
         "ACTIVITY_TRACKER_ENDPOINT": "sync_endpoint",
-        "ACTIVITY_TRACKER_AUTH_TOKEN": "sync_auth_token",
+        "ACTIVITY_TRACKER_AUTH_TOKEN": "sync_auth_token",  # nosec B105
         "ACTIVITY_TRACKER_IDLE_THRESHOLD": "idle_threshold",
         "ACTIVITY_TRACKER_FAST_MODE": "fast_mode",
         "ACTIVITY_TRACKER_VERBOSE": "verbose_logging",
