@@ -3,6 +3,33 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from activity_tracker.activity_monitor import MonitorConfig
+
+
+class TestMonitorConfig(unittest.TestCase):
+    """Test cases for MonitorConfig dataclass."""
+
+    def test_default_values(self):
+        """Test default configuration values."""
+        config = MonitorConfig()
+        self.assertTrue(config.include_window_titles)
+        self.assertEqual(config.idle_threshold, 300)
+        self.assertEqual(config.debounce_delay, 1.0)
+        self.assertEqual(config.max_duration_cap, 120.0)
+
+    def test_custom_values(self):
+        """Test custom configuration values."""
+        config = MonitorConfig(
+            include_window_titles=False,
+            idle_threshold=60,
+            debounce_delay=0.5,
+            max_duration_cap=300.0,
+        )
+        self.assertFalse(config.include_window_titles)
+        self.assertEqual(config.idle_threshold, 60)
+        self.assertEqual(config.debounce_delay, 0.5)
+        self.assertEqual(config.max_duration_cap, 300.0)
+
 
 class TestActivityMonitor(unittest.TestCase):
     """Test cases for ActivityMonitor class."""
@@ -77,6 +104,103 @@ class TestActivityMonitor(unittest.TestCase):
         result = self.monitor.clear_session_data()
 
         self.assertEqual(result, {"App1": 30.0})
+        self.assertEqual(self.monitor.session_tracker.current_session, {})
+
+
+class TestActivityMonitorIdleTransition(unittest.TestCase):
+    """Test cases for idle transition handling."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        with patch.dict(
+            "sys.modules",
+            {
+                "AppKit": MagicMock(),
+                "Quartz": MagicMock(),
+            },
+        ):
+            from activity_tracker.activity_monitor import ActivityMonitor
+
+            self.monitor = ActivityMonitor(idle_threshold=300)
+
+    @patch("time.time")
+    def test_handle_idle_transition_became_idle(self, mock_time):
+        """Test transition to idle state with activity recording."""
+        mock_time.return_value = 1000.0
+        start_time = 900.0  # Started 100s ago
+
+        # Mock idle detector to say we just became idle
+        self.monitor.idle_detector.check_idle_state = MagicMock(return_value=True)
+        self.monitor.idle_detector.is_idle = True
+        # System idle time is 301s (just crossed 300s threshold)
+        self.monitor.idle_detector.get_system_idle_time = MagicMock(return_value=301.0)
+
+        new_start_time = self.monitor.handle_idle_transition("Safari", start_time)
+
+        # Should return current time as new start time
+        self.assertEqual(new_start_time, 1000.0)
+
+        # Should have recorded activity
+        # Idle start = 1000 - 301 = 699
+        # Duration = 699 - 900 = -201 (negative!)
+        # Wait, the logic is: idle_start_timestamp = current_time - idle_time
+        # active_duration = idle_start_timestamp - start_time
+        # If we started at 900, and current is 1000, and we've been idle for 301s...
+        # Then we went idle at 699.
+        # So we were active from 900 to 699? That's impossible.
+        # This means the start_time (900) is AFTER we went idle (699).
+        # So duration is negative, should NOT record.
+        self.assertEqual(self.monitor.session_tracker.current_session, {})
+
+    @patch("time.time")
+    def test_handle_idle_transition_valid_activity(self, mock_time):
+        """Test valid activity recording before idle."""
+        mock_time.return_value = 1000.0
+        # We've been idle for 301s, so we went idle at 699.
+        # Let's say we started tracking this app at 650.
+        start_time = 650.0
+
+        self.monitor.idle_detector.check_idle_state = MagicMock(return_value=True)
+        self.monitor.idle_detector.is_idle = True
+        self.monitor.idle_detector.get_system_idle_time = MagicMock(return_value=301.0)
+
+        self.monitor.handle_idle_transition("Safari", start_time)
+
+        # Active duration = (1000 - 301) - 650 = 699 - 650 = 49s
+        self.assertEqual(self.monitor.session_tracker.current_session["Safari"], 49.0)
+
+    @patch("time.time")
+    def test_handle_idle_transition_cap_duration(self, mock_time):
+        """Test duration capping for long inferred activity."""
+        mock_time.return_value = 1000.0
+        # Went idle at 699.
+        # Started at 500. Duration would be 199s.
+        # Cap is 120s.
+        start_time = 500.0
+
+        self.monitor.idle_detector.check_idle_state = MagicMock(return_value=True)
+        self.monitor.idle_detector.is_idle = True
+        self.monitor.idle_detector.get_system_idle_time = MagicMock(return_value=301.0)
+
+        self.monitor.handle_idle_transition("Safari", start_time)
+
+        # Duration 199 > 120, so should NOT record (as per logic: <= max_duration_cap)
+        self.assertEqual(self.monitor.session_tracker.current_session, {})
+
+    @patch("time.time")
+    def test_handle_idle_transition_became_active(self, mock_time):
+        """Test transition from idle to active."""
+        mock_time.return_value = 1000.0
+        start_time = 900.0
+
+        self.monitor.idle_detector.check_idle_state = MagicMock(return_value=True)
+        self.monitor.idle_detector.is_idle = False  # Became active
+
+        new_start_time = self.monitor.handle_idle_transition("Safari", start_time)
+
+        # Should update start time to now
+        self.assertEqual(new_start_time, 1000.0)
+        # Should not record any activity
         self.assertEqual(self.monitor.session_tracker.current_session, {})
 
 
