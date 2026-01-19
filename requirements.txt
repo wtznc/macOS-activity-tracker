@@ -1,4 +1,4 @@
 pyobjc-framework-Cocoa==12.0; sys_platform == "darwin"
 pyobjc-framework-Quartz==12.0; sys_platform == "darwin"
-psutil==7.0.0
+psutil==7.2.1
 requests==2.32.4
