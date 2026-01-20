@@ -93,14 +93,6 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         # We verify init logic:
         sys.modules["AppKit"].NSStatusBar.systemStatusBar.assert_called()
 
-    def test_setup_menu(self):
-        """Test menu setup."""
-        # This is called during init. Verify items were added.
-        # NSMenu.addItem_
-        # We can't verify calls on the menu object easily unless we mock NSMenu.alloc().init()
-        # to return a tracked mock.
-        pass
-
     def test_update_icon_running(self):
         """Test icon update when running."""
         self.delegate.is_running = True

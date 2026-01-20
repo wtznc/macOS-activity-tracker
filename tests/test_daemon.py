@@ -82,28 +82,28 @@ class TestActivityDaemon(unittest.TestCase):
 
     @patch("os.fork")
     @patch("sys.exit")
-    @patch("os.setsid")
-    @patch("os.chdir")
-    @patch("os.umask")
-    def test_daemonize_parent_exit(self, mock_umask, mock_chdir, mock_setsid, mock_exit, mock_fork):
+    def test_daemonize_parent_exit(self, mock_exit, mock_fork):
         """Test parent exit on first fork."""
         mock_fork.return_value = 123 # Parent
-        self.daemon.daemonize()
+        mock_exit.side_effect = SystemExit
+        
+        with self.assertRaises(SystemExit):
+            self.daemon.daemonize()
+            
         mock_exit.assert_called_with(0)
-        # Even though exit is mocked, we verify it was called. 
-        # Since we mocked setsid, flow continues but does no harm.
 
     @patch("os.fork")
     @patch("sys.exit")
-    @patch("os.setsid")
-    @patch("os.chdir")
-    @patch("os.umask")
-    def test_daemonize_second_parent_exit(self, mock_umask, mock_chdir, mock_setsid, mock_exit, mock_fork):
+    def test_daemonize_second_parent_exit(self, mock_exit, mock_fork):
         """Test second parent exit."""
         # First fork returns 0 (child), second fork returns 123 (parent)
         mock_fork.side_effect = [0, 123]
+        mock_exit.side_effect = SystemExit
         
-        self.daemon.daemonize()
+        # We still need to mock os.setsid/chdir/umask because they run BETWEEN forks
+        with patch("os.setsid"), patch("os.chdir"), patch("os.umask"):
+            with self.assertRaises(SystemExit):
+                self.daemon.daemonize()
         
         mock_exit.assert_called_with(0)
 

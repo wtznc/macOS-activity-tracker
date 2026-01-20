@@ -1,10 +1,8 @@
 """Tests for sync functionality."""
 
-import json
 import sys
 import tempfile
 import unittest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from activity_tracker.sync import SyncManager, main
