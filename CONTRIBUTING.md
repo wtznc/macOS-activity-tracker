@@ -55,7 +55,7 @@ Thank you for your interest in contributing! We welcome bug reports, feature req
 
 ## Reporting Bugs
 
-Please use the [Bug Report Template](https://github.com/wtznc/macOS-activity-tracker/issues/new?template=bug_report.md) and include:
+Please use the [Bug Report Template](https://github.com/wtznc/macOS-activity-tracker/issues) and include:
 -   macOS version
 -   Python version
 -   Steps to reproduce
