@@ -6,12 +6,13 @@ from unittest.mock import MagicMock, patch
 
 # Need to patch imports BEFORE importing menu_bar
 
+
 # Define a mock NSObject class that supports alloc().init() pattern
 class MockNSObject:
     @classmethod
     def alloc(cls):
         return cls()
-    
+
     def init(self):
         return self
 
@@ -19,8 +20,11 @@ class MockNSObject:
         self.title = title
         return self
 
+
 # Mock AppKit/Foundation/objc modules
 mock_objc = MagicMock()
+
+
 # Mock objc.super to return an object that responds to init()
 # When super(Class, self).init() is called, it returns self (simplified)
 def mock_super(cls, self_obj):
@@ -30,11 +34,15 @@ def mock_super(cls, self_obj):
     super_mock.init.return_value = self_obj
     return super_mock
 
+
 mock_objc.super = mock_super
+
 
 # Configure objc decorators to be identity functions
 def identity(func):
     return func
+
+
 mock_objc.IBAction = identity
 mock_objc.python_method = identity
 
@@ -53,25 +61,27 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        # Since we are using a real class inheriting from MockNSObject, 
+        # Since we are using a real class inheriting from MockNSObject,
         # alloc().init() works and calls our actual init method.
         # But we need to ensure other dependencies (NSStatusBar, etc.) are mocked correctly.
-        
+
         # Patching inside setUp is safer for method-level isolation, but we need
         # the class properly initialized.
-        
+
         # We need to mock NSStatusBar.systemStatusBar()
         self.mock_status_bar = MagicMock()
-        sys.modules["AppKit"].NSStatusBar.systemStatusBar.return_value = self.mock_status_bar
-        
+        sys.modules["AppKit"].NSStatusBar.systemStatusBar.return_value = (
+            self.mock_status_bar
+        )
+
         # Create delegate
         self.delegate = ActivityTrackerMenuBarDelegate.alloc().init()
-        
+
         # Reset mocks/attributes for clean state if needed
         # Since init() ran, these attributes are set from the code.
         # We might need to replace them with fresh mocks if we want to assert calls
         # made *during test*, not during init.
-        
+
         # Mock items for testing actions
         self.delegate.status_item = MagicMock()
         self.delegate.status_menu_item = MagicMock()
@@ -110,12 +120,14 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.is_running = True
         self.delegate.verbose_mode = True
         self.delegate.fast_mode = False
-        
+
         self.delegate.updateStatus_(None)
-        
+
         self.delegate.status_menu_item.setTitle_.assert_called_with("Status: Running")
         self.delegate.toggle_item.setTitle_.assert_called_with("Stop Tracking")
-        self.delegate.verbose_item.setTitle_.assert_called_with("Disable Verbose Logging")
+        self.delegate.verbose_item.setTitle_.assert_called_with(
+            "Disable Verbose Logging"
+        )
         self.delegate.fast_mode_item.setTitle_.assert_called_with("Enable Fast Mode")
 
     def test_update_status_stopped(self):
@@ -123,12 +135,14 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.is_running = False
         self.delegate.verbose_mode = False
         self.delegate.fast_mode = True
-        
+
         self.delegate.updateStatus_(None)
-        
+
         self.delegate.status_menu_item.setTitle_.assert_called_with("Status: Stopped")
         self.delegate.toggle_item.setTitle_.assert_called_with("Start Tracking")
-        self.delegate.verbose_item.setTitle_.assert_called_with("Enable Verbose Logging")
+        self.delegate.verbose_item.setTitle_.assert_called_with(
+            "Enable Verbose Logging"
+        )
         self.delegate.fast_mode_item.setTitle_.assert_called_with("Disable Fast Mode")
 
     def test_toggle_tracking(self):
@@ -137,9 +151,9 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         with patch("activity_tracker.menu_bar.ActivityTracker") as mock_tracker:
             with patch("threading.Thread") as mock_thread:
                 self.delegate.toggleTracking_(None)
-        
+
         self.assertTrue(self.delegate.is_running)
-        
+
         # Stop
         self.delegate.toggleTracking_(None)
         self.assertFalse(self.delegate.is_running)
@@ -149,7 +163,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.is_running = True
         with patch("builtins.print") as mock_print:
             self.delegate.start_tracking()
-        
+
         # Should do nothing
         mock_print.assert_not_called()
 
@@ -158,7 +172,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.is_running = False
         with patch("builtins.print") as mock_print:
             self.delegate.stop_tracking()
-            
+
         mock_print.assert_not_called()
 
     @patch("time.sleep")
@@ -169,15 +183,15 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.is_running = True
         self.delegate.tracker = MagicMock()
         old_tracker = self.delegate.tracker
-        
+
         with patch("activity_tracker.menu_bar.ActivityTracker") as mock_tracker_cls:
-             with patch("threading.Thread"):
+            with patch("threading.Thread"):
                 self.delegate.toggleVerbose_(None)
-        
+
         self.assertFalse(self.delegate.verbose_mode)
         # Should restart tracker
         old_tracker.stop.assert_called()
-        mock_tracker_cls.assert_called() # New tracker created
+        mock_tracker_cls.assert_called()  # New tracker created
 
     @patch("time.sleep")
     def test_toggle_fast_mode(self, mock_sleep):
@@ -188,9 +202,9 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         old_tracker = self.delegate.tracker
 
         with patch("activity_tracker.menu_bar.ActivityTracker") as mock_tracker_cls:
-             with patch("threading.Thread"):
+            with patch("threading.Thread"):
                 self.delegate.toggleFastMode_(None)
-                
+
         self.assertTrue(self.delegate.fast_mode)
         old_tracker.stop.assert_called()
 
@@ -206,10 +220,10 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         """Test quit app."""
         self.delegate.is_running = True
         self.delegate.tracker = MagicMock()
-        
+
         with patch("AppKit.NSApplication") as mock_app:
             self.delegate.quitApp_(None)
-            
+
         self.delegate.tracker.stop.assert_called()
         # terminate_ called on sharedApplication
         # NSApplication.sharedApplication().terminate_(None)
@@ -220,14 +234,18 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         # Use our MockNSObject logic or MagicMock for NSAlert
         mock_alert = MagicMock()
         mock_alert_cls.alloc.return_value.init.return_value = mock_alert
-        
-        self.delegate.sync_manager.sync_all.return_value = {"synced": 5, "failed": 0, "skipped": 0}
-        
+
+        self.delegate.sync_manager.sync_all.return_value = {
+            "synced": 5,
+            "failed": 0,
+            "skipped": 0,
+        }
+
         self.delegate.syncData_(None)
-        
+
         self.delegate.sync_manager.sync_all.assert_called()
         # Verify success message
-        # We can't easily inspect setInformativeText_ argument string content exactly 
+        # We can't easily inspect setInformativeText_ argument string content exactly
         # without complex matching, but we verify it ran modal
         mock_alert.runModal.assert_called()
 
@@ -236,8 +254,12 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         """Test sync data with failures."""
         mock_alert = MagicMock()
         mock_alert_cls.alloc.return_value.init.return_value = mock_alert
-        self.delegate.sync_manager.sync_all.return_value = {"synced": 0, "failed": 5, "skipped": 0}
-        
+        self.delegate.sync_manager.sync_all.return_value = {
+            "synced": 0,
+            "failed": 5,
+            "skipped": 0,
+        }
+
         self.delegate.syncData_(None)
         mock_alert.runModal.assert_called()
 
@@ -247,7 +269,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         mock_alert = MagicMock()
         mock_alert_cls.alloc.return_value.init.return_value = mock_alert
         self.delegate.sync_manager.sync_all.side_effect = Exception("Sync failed")
-        
+
         self.delegate.syncData_(None)
         mock_alert.runModal.assert_called()
 
@@ -261,9 +283,9 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
             "synced_hours": 5,
             "pending_hours": 5,
             "endpoint": "http://test",
-            "last_sync": "Today"
+            "last_sync": "Today",
         }
-        
+
         self.delegate.showSyncStatus_(None)
         mock_alert.runModal.assert_called()
 
@@ -277,14 +299,14 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
 
 class TestMenuBarApp(unittest.TestCase):
     """Test cases for MenuBarApp class."""
-    
+
     @patch("activity_tracker.menu_bar.ActivityTrackerMenuBarDelegate")
     def test_run(self, mock_delegate_cls):
         """Test app run."""
         app = MenuBarApp()
         with patch("builtins.print"):
-             app.run()
-        
+            app.run()
+
         app.app.run.assert_called()
 
     @patch("activity_tracker.menu_bar.ActivityTrackerMenuBarDelegate")
@@ -292,21 +314,21 @@ class TestMenuBarApp(unittest.TestCase):
         """Test app run interrupt."""
         app = MenuBarApp()
         app.app.run.side_effect = KeyboardInterrupt
-        
+
         # Mock delegate instance
         mock_delegate_instance = mock_delegate_cls.alloc().init()
         mock_delegate_instance.is_running = True
         app.delegate = mock_delegate_instance
-        
+
         with patch("builtins.print"):
-             app.run()
-        
+            app.run()
+
         mock_delegate_instance.stop_tracking.assert_called()
 
 
 class TestMain(unittest.TestCase):
     """Test main function."""
-    
+
     @patch("activity_tracker.menu_bar.MenuBarApp")
     def test_main(self, mock_app_cls):
         """Test main."""
@@ -328,6 +350,7 @@ class TestMain(unittest.TestCase):
         with self.assertRaises(SystemExit):
             with patch("builtins.print"):
                 main()
+
 
 if __name__ == "__main__":
     unittest.main()

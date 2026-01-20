@@ -14,10 +14,10 @@ class TestCLI(unittest.TestCase):
     def test_main_defaults(self, mock_tracker_class):
         """Test main with default arguments."""
         mock_tracker = mock_tracker_class.return_value
-        
+
         with patch.object(sys, "argv", ["activity-tracker"]):
             main()
-            
+
         mock_tracker_class.assert_called_with(
             verbose=True,
             fast_mode=False,
@@ -30,16 +30,11 @@ class TestCLI(unittest.TestCase):
     @patch("activity_tracker.core.ActivityTracker")
     def test_main_arguments(self, mock_tracker_class):
         """Test main with various arguments."""
-        args = [
-            "activity-tracker",
-            "--quiet",
-            "--fast",
-            "--idle-threshold", "600"
-        ]
-        
+        args = ["activity-tracker", "--quiet", "--fast", "--idle-threshold", "600"]
+
         with patch.object(sys, "argv", args):
             main()
-            
+
         mock_tracker_class.assert_called_with(
             verbose=False,
             fast_mode=True,
@@ -52,7 +47,7 @@ class TestCLI(unittest.TestCase):
         """Test main with --no-windows."""
         with patch.object(sys, "argv", ["activity-tracker", "--no-windows"]):
             main()
-            
+
         mock_tracker_class.assert_called_with(
             verbose=True,
             fast_mode=False,
@@ -63,10 +58,12 @@ class TestCLI(unittest.TestCase):
     @patch("activity_tracker.core.ActivityTracker")
     def test_main_invalid_idle(self, mock_tracker_class):
         """Test main with invalid idle threshold."""
-        with patch.object(sys, "argv", ["activity-tracker", "--idle-threshold", "invalid"]):
+        with patch.object(
+            sys, "argv", ["activity-tracker", "--idle-threshold", "invalid"]
+        ):
             with patch("builtins.print") as mock_print:
                 main()
-                
+
         mock_print.assert_called_with("Invalid idle threshold: invalid")
         mock_tracker_class.assert_not_called()
 
@@ -75,7 +72,7 @@ class TestCLI(unittest.TestCase):
         with patch.object(sys, "argv", ["activity-tracker", "--help"]):
             with patch("builtins.print") as mock_print:
                 main()
-                
+
         # Should print help and exit
         self.assertTrue(mock_print.called)
         # Should verify some help text
@@ -87,11 +84,10 @@ class TestCLI(unittest.TestCase):
         """Test keyboard interrupt handling."""
         mock_tracker = mock_tracker_class.return_value
         mock_tracker.start.side_effect = KeyboardInterrupt
-        
+
         with patch.object(sys, "argv", ["activity-tracker"]):
             with patch("builtins.print") as mock_print:
                 main()
-                
+
         mock_print.assert_any_call("\nReceived interrupt signal")
         mock_tracker.stop.assert_called()
-
