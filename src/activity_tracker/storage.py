@@ -40,8 +40,15 @@ class ActivityDataStore:
         if not data:
             return
 
-        # Round all values to 2 decimal places
-        rounded_data = {app: round(duration, 2) for app, duration in data.items()}
+        # Filter out noise values (< 0.01s), then round to 2 decimal places
+        rounded_data = {
+            app: round(duration, 2)
+            for app, duration in data.items()
+            if duration >= 0.01
+        }
+
+        if not rounded_data:
+            return
 
         filepath = self.data_dir / filename
         with open(filepath, "w", encoding="utf-8") as f:

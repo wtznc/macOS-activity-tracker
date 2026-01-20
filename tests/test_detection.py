@@ -428,6 +428,60 @@ class TestTitleCleaner(unittest.TestCase):
         result = self.cleaner.normalize_app_name("Safari - GitHub")
         self.assertEqual(result, "Safari - GitHub")
 
+    def test_strip_spinner_prefix_braille_dot(self):
+        """Test stripping braille spinner prefixes."""
+        # Common braille spinner characters
+        result = self.cleaner.clean_title("\u2800 Run Sonar Analysis")
+        self.assertEqual(result, "Run Sonar Analysis")
+
+        result = self.cleaner.clean_title("\u2801 Building project")
+        self.assertEqual(result, "Building project")
+
+        result = self.cleaner.clean_title("\u2802 Installing deps")
+        self.assertEqual(result, "Installing deps")
+
+    def test_strip_spinner_prefix_asterisk(self):
+        """Test stripping asterisk spinner prefix."""
+        result = self.cleaner.clean_title("* Claude Code")
+        self.assertEqual(result, "Claude Code")
+
+    def test_strip_spinner_prefix_pipe(self):
+        """Test stripping pipe spinner prefix."""
+        result = self.cleaner.clean_title("| Running tests")
+        self.assertEqual(result, "Running tests")
+
+    def test_strip_spinner_prefix_slash(self):
+        """Test stripping slash spinner prefix."""
+        result = self.cleaner.clean_title("/ Compiling")
+        self.assertEqual(result, "Compiling")
+
+    def test_strip_spinner_preserves_normal_titles(self):
+        """Test that normal titles without spinners are preserved."""
+        result = self.cleaner.clean_title("wojtek@laptop:~/projects")
+        self.assertEqual(result, "wojtek@laptop:~/projects")
+
+        result = self.cleaner.clean_title("Safari - GitHub Dashboard")
+        self.assertEqual(result, "Safari - GitHub Dashboard")
+
+    def test_strip_spinner_preserves_short_titles(self):
+        """Test that short titles are preserved."""
+        result = self.cleaner.clean_title("A")
+        self.assertEqual(result, "A")
+
+        result = self.cleaner.clean_title("")
+        self.assertEqual(result, "")
+
+    def test_strip_spinner_requires_space_after(self):
+        """Test that spinner char without space is not stripped."""
+        # No space after asterisk - should preserve
+        result = self.cleaner.clean_title("*important")
+        self.assertEqual(result, "*important")
+
+    def test_strip_double_spinner_prefix(self):
+        """Test stripping double spinner character prefix."""
+        result = self.cleaner.clean_title("** Building")
+        self.assertEqual(result, "Building")
+
 
 if __name__ == "__main__":
     unittest.main()
