@@ -1,70 +1,68 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""
-PyInstaller spec file for Activity Tracker macOS app bundle.
-"""
-
+import os
 import sys
 from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Activity Tracker PyInstaller specification file
+#
+# This file defines how the Activity Tracker application is bundled into a
+# standalone executable and macOS .app bundle.
+#
+# Overview of build steps:
+#   1. Analysis  (Analysis):  Scan the entry-point script and its imports to
+#      determine all Python modules, binaries, and data files required.
+#   2. PYZ       (PYZ):       Create a compressed archive of pure Python
+#      modules that will be embedded in the executable.
+#   3. EXE       (EXE):       Build the platform-specific executable from the
+#      archived Python code, collected binaries, and data.
+#   4. COLLECT   (COLLECT):   Collect all binaries and dependencies into a
+#      directory structure (onedir mode).
+#   5. BUNDLE    (BUNDLE):    For macOS, wrap the collected directory into a
+#      .app application bundle with the appropriate metadata.
+# ---------------------------------------------------------------------------
+
+block_cipher = None
 
 # Get the project root directory
 project_root = Path(SPECPATH).resolve()
 src_path = project_root / 'src'
 
-block_cipher = None
+# Read version from environment or default
+version = os.environ.get('VERSION', '1.0.13')
 
 a = Analysis(
     ['src/activity_tracker/menu_bar.py'],
     pathex=[str(src_path)],
     binaries=[],
-    datas=[
-        # Include any data files if needed
-        # ('src/activity_tracker/data', 'activity_tracker/data'),
-    ],
+    datas=[],
     hiddenimports=[
-        # PyObjC frameworks that might not be auto-detected
+        # PyObjC frameworks and bridge modules that may be loaded dynamically
         'objc',
         'Foundation',
         'AppKit',
         'Cocoa',
         'Quartz',
         'CoreFoundation',
-        # Activity tracker modules
-        'activity_tracker.menu_bar',
-        'activity_tracker.core',
-        'activity_tracker.daemon',
-        'activity_tracker.sync',
-        'activity_tracker.activity_monitor',
-        'activity_tracker.config',
-        'activity_tracker.data_aggregator',
-        'activity_tracker.detection',
-        'activity_tracker.http_sync',
-        'activity_tracker.storage',
-        'activity_tracker.utils',
-        # Required system modules
+        # Activity tracker internal package (for dynamically imported submodules)
+        'activity_tracker',
+        # Third-party dependencies that may not be detected via static analysis
         'psutil',
         'requests',
-        'json',
-        'sqlite3',
     ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        # Exclude unnecessary modules to reduce bundle size
-        'tkinter',
-        'matplotlib',
-        'numpy',
-        'scipy',
-        'pandas',
-        'PIL',
-        'cv2',
+        # Exclude heavy libraries not used by this project to save space
+        'tkinter', 'matplotlib', 'numpy', 'scipy', 'pandas', 'PIL', 'cv2',
+        'PyQt5', 'PySide2', 'wx',
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,
     noarchive=False,
 )
-
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
@@ -77,8 +75,9 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,  # No console window for GUI app
+    console=False,
     disable_windowed_traceback=False,
+    argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
@@ -92,31 +91,22 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='ActivityTracker',
+    name='Activity Tracker',
 )
 
 app = BUNDLE(
     coll,
     name='Activity Tracker.app',
-    icon=None,  # Add icon path here if you have one: 'path/to/icon.icns'
+    icon=None,
     bundle_identifier='com.wtznc.activity-tracker',
-    version='1.0.2',
     info_plist={
-        'CFBundleName': 'Activity Tracker',
-        'CFBundleDisplayName': 'Activity Tracker',
-        'CFBundleGetInfoString': 'Activity Tracker - macOS Usage Tracking',
-        'CFBundleIdentifier': 'com.wtznc.activity-tracker',
-        'CFBundleVersion': '1.0.2',
-        'CFBundleShortVersionString': '1.0.2',
-        'CFBundlePackageType': 'APPL',
-        'CFBundleSignature': '????',
-        'LSUIElement': True,  # Hide from dock (menu bar app)
-        'LSMinimumSystemVersion': '10.14',
+        'LSUIElement': True,  # Menu bar only app (hidden from Dock)
+        'CFBundleShortVersionString': version,
+        'CFBundleVersion': version,
+        'NSAppleEventsUsageDescription': 'Activity Tracker requires access to Apple Events to monitor and track application usage.',
+        'NSSystemAdministrationUsageDescription': 'Activity Tracker requires system administration privileges to access and track system activity.',
         'NSHighResolutionCapable': True,
-        'NSHumanReadableCopyright': 'Copyright © 2025 Wojciech Tyziniec. MIT License.',
-        'NSAppleEventsUsageDescription': 'Activity Tracker needs to access application information to track your usage.',
-        'NSSystemAdministrationUsageDescription': 'Activity Tracker needs system access to monitor application usage.',
-        'NSAppleScriptEnabled': False,
-        'LSBackgroundOnly': False,
+        'LSMinimumSystemVersion': '10.13.0',
+        'NSHumanReadableCopyright': 'Copyright © 2024 Wojciech Tyziniec. All rights reserved.',
     },
 )
