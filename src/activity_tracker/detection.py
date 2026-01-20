@@ -324,7 +324,9 @@ class TitleCleaner:
     # Terminal apps that commonly show spinners
     TERMINAL_APPS = {"iTerm2", "Terminal", "Alacritty", "Hyper", "kitty"}
 
-    def clean_title(self, title: str, app_name: str = "") -> str:
+    def clean_title(
+        self, title: Optional[str], app_name: str = ""
+    ) -> Optional[str]:
         """Clean up window title by properly handling Unicode characters."""
         if not title:
             return title
@@ -341,8 +343,9 @@ class TitleCleaner:
         for unicode_char, replacement in self.UNICODE_REPLACEMENTS.items():
             title = title.replace(unicode_char, replacement)
 
-        # Strip spinner prefixes (e.g., "* Task" or "⠐ Task" -> "Task")
-        title = self._strip_spinner_prefix(title)
+        # Strip spinner prefixes only for terminal apps
+        if not app_name or app_name in self.TERMINAL_APPS:
+            title = self._strip_spinner_prefix(title)
 
         # VS Code specific cleaning
         if title.endswith(" — Visual Studio Code"):

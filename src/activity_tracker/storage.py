@@ -40,11 +40,11 @@ class ActivityDataStore:
         if not data:
             return
 
-        # Round to 2 decimal places and filter out zero values
+        # Filter out noise values (< 0.01s), then round to 2 decimal places
         rounded_data = {
             app: round(duration, 2)
             for app, duration in data.items()
-            if round(duration, 2) > 0
+            if duration >= 0.01
         }
 
         if not rounded_data:
