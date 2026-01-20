@@ -36,13 +36,16 @@ class ActivityDataStore:
             return {}
 
     def save_data(self, data: Dict[str, float], filename: str) -> None:
-        """Save data to file."""
+        """Save data to file with 2 decimal precision."""
         if not data:
             return
 
+        # Round all values to 2 decimal places
+        rounded_data = {app: round(duration, 2) for app, duration in data.items()}
+
         filepath = self.data_dir / filename
         with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+            json.dump(rounded_data, f, indent=2, ensure_ascii=False)
 
     def merge_and_save_session_data(self, session_data: Dict[str, float]) -> None:
         """Merge session data with existing data and save."""
@@ -52,9 +55,9 @@ class ActivityDataStore:
         filename = self.get_current_minute_filename()
         existing_data = self.load_existing_data(filename)
 
-        # Merge with current session data
+        # Merge with current session data (round to 2 decimals)
         for app, duration in session_data.items():
-            existing_data[app] = existing_data.get(app, 0) + duration
+            existing_data[app] = round(existing_data.get(app, 0) + duration, 2)
 
         self.save_data(existing_data, filename)
 

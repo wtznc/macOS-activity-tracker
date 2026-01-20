@@ -1,15 +1,11 @@
 """Tests for sync functionality."""
 
-import json
+import sys
 import tempfile
 import unittest
-from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch
 
-import pytest
-import requests
-
-from activity_tracker.sync import SyncManager
+from activity_tracker.sync import SyncManager, main
 
 
 class TestSyncManager(unittest.TestCase):
@@ -18,9 +14,16 @@ class TestSyncManager(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
+        self.endpoint = "https://test.example.com/api/data"
         self.sync_manager = SyncManager(
-            data_dir=self.temp_dir, endpoint="https://test.example.com/api/data"
+            data_dir=self.temp_dir, endpoint=self.endpoint, auth_token="token"
         )
+
+        # Mock components
+        self.sync_manager.data_aggregator = MagicMock()
+        self.sync_manager.sync_state = MagicMock()
+        self.sync_manager.http_client = MagicMock()
+        self.sync_manager.device_identifier = MagicMock()
 
     def tearDown(self):
         """Clean up test fixtures."""
@@ -30,241 +33,226 @@ class TestSyncManager(unittest.TestCase):
 
     def test_initialization(self):
         """Test SyncManager initialization."""
-        self.assertEqual(
-            self.sync_manager.data_aggregator.data_dir, Path(self.temp_dir)
+        manager = SyncManager(data_dir=self.temp_dir, endpoint="http://test")
+        self.assertEqual(manager.endpoint, "http://test")
+        self.assertIsNotNone(manager.data_aggregator)
+        self.assertIsNotNone(manager.sync_state)
+        self.assertIsNotNone(manager.http_client)
+
+    def test_sync_hour_no_endpoint(self):
+        """Test sync_hour fails gracefully without endpoint."""
+        self.sync_manager.endpoint = ""
+        with patch("builtins.print") as mock_print:
+            result = self.sync_manager.sync_hour("2024-01-01_12", {})
+
+        self.assertFalse(result)
+        mock_print.assert_called_with("Error: No sync endpoint configured.")
+
+    def test_sync_hour_already_synced(self):
+        """Test sync_hour skips if already synced."""
+        self.sync_manager.sync_state.is_hour_synced.return_value = True
+
+        with patch("builtins.print") as mock_print:
+            result = self.sync_manager.sync_hour("2024-01-01_12", {})
+
+        self.assertTrue(result)
+        self.sync_manager.http_client.sync_hour_data.assert_not_called()
+        mock_print.assert_called()
+
+    def test_sync_hour_force(self):
+        """Test sync_hour proceeds if forced even if synced."""
+        self.sync_manager.sync_state.is_hour_synced.return_value = True
+        self.sync_manager.http_client.sync_hour_data.return_value = True
+
+        result = self.sync_manager.sync_hour("2024-01-01_12", {}, force=True)
+
+        self.assertTrue(result)
+        self.sync_manager.http_client.sync_hour_data.assert_called()
+        self.sync_manager.sync_state.mark_hour_synced.assert_called_with(
+            "2024-01-01_12"
         )
-        self.assertEqual(
-            self.sync_manager.endpoint, "https://test.example.com/api/data"
+
+    def test_sync_hour_success(self):
+        """Test successful sync_hour."""
+        self.sync_manager.sync_state.is_hour_synced.return_value = False
+        self.sync_manager.http_client.sync_hour_data.return_value = True
+
+        result = self.sync_manager.sync_hour("2024-01-01_12", {})
+
+        self.assertTrue(result)
+        self.sync_manager.sync_state.mark_hour_synced.assert_called_with(
+            "2024-01-01_12"
         )
-        self.assertIsNotNone(self.sync_manager.sync_state.synced_hours_file)
 
-    def test_create_sample_data(self):
-        """Test creation of sample activity data files."""
-        # Create sample data files
-        sample_data = {"App1": 30.5, "App2": 25.2, "App3": 4.3}
+    def test_sync_hour_failure(self):
+        """Test failed sync_hour."""
+        self.sync_manager.sync_state.is_hour_synced.return_value = False
+        self.sync_manager.http_client.sync_hour_data.return_value = False
 
-        data_file = Path(self.temp_dir) / "activity_20240115_1430.json"
-        with open(data_file, "w") as f:
-            json.dump(sample_data, f)
+        result = self.sync_manager.sync_hour("2024-01-01_12", {})
 
-        self.assertTrue(data_file.exists())
+        self.assertFalse(result)
+        self.sync_manager.sync_state.mark_hour_synced.assert_not_called()
 
-        # Test file discovery
-        json_files = list(Path(self.temp_dir).glob("activity_*.json"))
-        self.assertEqual(len(json_files), 1)
+    def test_sync_all_no_endpoint(self):
+        """Test sync_all fails without endpoint."""
+        self.sync_manager.endpoint = ""
+        with patch("builtins.print") as mock_print:
+            result = self.sync_manager.sync_all()
 
-    def test_group_files_by_hour(self):
-        """Test grouping activity files by hour."""
-        # Create multiple files for the same hour
-        sample_data1 = {"App1": 30.0}
-        sample_data2 = {"App2": 25.0}
-        sample_data3 = {"App3": 5.0}
+        self.assertEqual(result["synced"], 0)
+        mock_print.assert_called()
 
-        files = [
-            "activity_20240115_1430.json",
-            "activity_20240115_1431.json",
-            "activity_20240115_1432.json",
-            "activity_20240115_1530.json",  # Different hour
-        ]
+    def test_sync_all_no_files(self):
+        """Test sync_all with no files."""
+        self.sync_manager.data_aggregator.group_files_by_hour.return_value = {}
 
-        data_sets = [sample_data1, sample_data2, sample_data3, {"App4": 60.0}]
+        with patch("builtins.print") as mock_print:
+            result = self.sync_manager.sync_all()
 
-        for filename, data in zip(files, data_sets):
-            filepath = Path(self.temp_dir) / filename
-            with open(filepath, "w") as f:
-                json.dump(data, f)
+        self.assertEqual(result["synced"], 0)
+        mock_print.assert_called_with("No activity files found to sync")
 
-        # Test grouping logic (would need to implement in SyncManager)
-        json_files = list(Path(self.temp_dir).glob("activity_*.json"))
-        self.assertEqual(len(json_files), 4)
+    def test_sync_all_mixed_results(self):
+        """Test sync_all with mixed success/fail/skip."""
+        files = {"h1": ["f1"], "h2": ["f2"], "h3": ["f3"]}
+        self.sync_manager.data_aggregator.group_files_by_hour.return_value = files
 
-        # Group by hour prefix
-        hours = set()
-        for file in json_files:
-            # Extract hour from filename
-            # (e.g., "20240115_14" from "activity_20240115_1430.json")
-            hour = file.stem.split("_")[1] + "_" + file.stem.split("_")[2][:2]
-            hours.add(hour)
+        # h1: skip (already synced)
+        # h2: success
+        # h3: fail
+        def is_synced(hour):
+            return hour == "h1"
 
-        self.assertEqual(len(hours), 2)  # Two different hours
+        self.sync_manager.sync_state.is_hour_synced.side_effect = is_synced
 
-    @patch("requests.post")
-    def test_successful_sync(self, mock_post):
-        """Test successful data synchronization."""
-        # Mock successful HTTP response
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {"status": "success"}
-        mock_post.return_value = mock_response
+        # Mock sync_hour explicitly to control outcome for h2 and h3
+        # Since sync_all calls sync_hour, we can patch sync_hour on the instance
+        # OR rely on mocking http_client.
+        # But sync_hour logic is inside SyncManager.
+        # Let's mock sync_hour method for isolation of sync_all logic
+        with patch.object(self.sync_manager, "sync_hour") as mock_sync_hour:
+            mock_sync_hour.side_effect = [
+                True,
+                False,
+            ]  # For h2, h3 (h1 is skipped before call)
 
-        # Create test data
-        test_data = {
-            "timestamp": "2024-01-15T14:00:00Z",
-            "hour": "2024-01-15_14",
-            "data": {
-                "applications": {"App1": 30.0, "App2": 30.0},
-                "total_time": 60.0,
-                "files_processed": 2,
-            },
+            with patch("builtins.print"):
+                result = self.sync_manager.sync_all()
+
+        self.assertEqual(result["skipped"], 1)  # h1
+        self.assertEqual(result["synced"], 1)  # h2
+        self.assertEqual(result["failed"], 1)  # h3
+
+    def test_sync_all_max_hours(self):
+        """Test sync_all with max_hours limit."""
+        files = {"h1": ["f1"], "h2": ["f2"], "h3": ["f3"]}
+        self.sync_manager.data_aggregator.group_files_by_hour.return_value = files
+
+        # Ensure items are not considered already synced
+        self.sync_manager.sync_state.is_hour_synced.return_value = False
+
+        # Mock sync_hour to always succeed
+        with patch.object(self.sync_manager, "sync_hour", return_value=True):
+            with patch("builtins.print"):
+                result = self.sync_manager.sync_all(max_hours=2)
+
+        # Should process last 2 hours (h2, h3)
+        self.assertEqual(result["synced"], 2)
+
+    def test_get_sync_status(self):
+        """Test get_sync_status."""
+        self.sync_manager.data_aggregator.group_files_by_hour.return_value = {
+            "h1": [],
+            "h2": [],
+        }
+        self.sync_manager.sync_state.get_sync_statistics.return_value = {
+            "stats": "dummy"
+        }
+        self.sync_manager.device_identifier.get_device_name.return_value = "TestDevice"
+
+        status = self.sync_manager.get_sync_status()
+
+        self.assertEqual(status["stats"], "dummy")
+        self.assertEqual(status["endpoint"], self.endpoint)
+        self.assertEqual(status["device"], "TestDevice")
+
+
+class TestSyncCLI(unittest.TestCase):
+    """Test cases for SyncManager CLI."""
+
+    @patch("activity_tracker.sync.SyncManager")
+    def test_main_status(self, mock_manager_class):
+        """Test main status command."""
+        mock_manager = mock_manager_class.return_value
+        mock_manager.get_sync_status.return_value = {
+            "device": "Test",
+            "total_hours": 10,
+            "synced_hours": 5,
+            "pending_hours": 5,
+            "endpoint": "http://test",
+            "last_sync": "never",
         }
 
-        # Test sync (this would be implemented in SyncManager)
-        # For now, just test the HTTP call
-        response = requests.post(
-            self.sync_manager.endpoint,
-            json=test_data,
-            headers={"Content-Type": "application/json"},
-        )
+        with patch.object(sys, "argv", ["sync_manager.py", "status"]):
+            with patch("builtins.print") as mock_print:
+                main()
 
-        self.assertEqual(response.status_code, 200)
-        mock_post.assert_called_once()
+        mock_manager.get_sync_status.assert_called()
+        mock_print.assert_any_call("Sync Status:")
 
-    @patch("requests.post")
-    def test_failed_sync(self, mock_post):
-        """Test handling of failed synchronization."""
-        # Mock failed HTTP response
-        mock_response = Mock()
-        mock_response.status_code = 500
-        mock_response.text = "Internal Server Error"
-        mock_post.return_value = mock_response
+    @patch("activity_tracker.sync.SyncManager")
+    def test_main_sync(self, mock_manager_class):
+        """Test main sync command."""
+        mock_manager = mock_manager_class.return_value
+        mock_manager.sync_all.return_value = {"synced": 1, "failed": 0, "skipped": 0}
 
-        test_data = {"test": "data"}
+        with patch.object(sys, "argv", ["sync_manager.py", "sync"]):
+            with patch("builtins.print") as mock_print:
+                main()
 
-        # Test failed sync
-        response = requests.post(self.sync_manager.endpoint, json=test_data)
+        mock_manager.sync_all.assert_called_with()
 
-        self.assertEqual(response.status_code, 500)
+    @patch("activity_tracker.sync.SyncManager")
+    def test_main_force(self, mock_manager_class):
+        """Test main force command."""
+        mock_manager = mock_manager_class.return_value
+        mock_manager.sync_all.return_value = {"synced": 1, "failed": 0, "skipped": 0}
 
-    @patch("requests.post")
-    def test_network_timeout(self, mock_post):
-        """Test handling of network timeouts."""
-        # Mock network timeout
-        mock_post.side_effect = requests.exceptions.Timeout("Request timed out")
+        with patch.object(sys, "argv", ["sync_manager.py", "force"]):
+            with patch("builtins.print"):
+                main()
 
-        test_data = {"test": "data"}
+        mock_manager.sync_all.assert_called_with(force=True)
 
-        # Test timeout handling
-        with self.assertRaises(requests.exceptions.Timeout):
-            requests.post(self.sync_manager.endpoint, json=test_data, timeout=5)
+    @patch("activity_tracker.sync.SyncManager")
+    def test_main_recent(self, mock_manager_class):
+        """Test main recent command."""
+        mock_manager = mock_manager_class.return_value
+        mock_manager.sync_all.return_value = {"synced": 1, "failed": 0, "skipped": 0}
 
-    def test_synced_hours_tracking(self):
-        """Test tracking of already synced hours."""
-        synced_hours_file = Path(self.temp_dir) / "synced_hours.json"
+        with patch.object(sys, "argv", ["sync_manager.py", "recent"]):
+            with patch("builtins.print"):
+                main()
 
-        # Test empty synced hours
-        if not synced_hours_file.exists():
-            synced_hours = []
-        else:
-            with open(synced_hours_file, "r") as f:
-                synced_hours = json.load(f)
+        mock_manager.sync_all.assert_called_with(max_hours=24)
 
-        self.assertEqual(synced_hours, [])
+    def test_main_help(self):
+        """Test main help."""
+        with patch.object(sys, "argv", ["sync_manager.py", "--help"]):
+            with patch("builtins.print") as mock_print:
+                main()
 
-        # Test adding synced hour
-        new_hour = "2024-01-15_14"
-        synced_hours.append(new_hour)
+        args, _ = mock_print.call_args_list[0]
+        self.assertEqual(args[0], "Sync Manager for Activity Tracker")
 
-        with open(synced_hours_file, "w") as f:
-            json.dump(synced_hours, f)
+    def test_main_unknown_command(self):
+        """Test main unknown command."""
+        with patch.object(sys, "argv", ["sync_manager.py", "unknown"]):
+            with patch("builtins.print") as mock_print:
+                main()
 
-        # Verify it was saved
-        with open(synced_hours_file, "r") as f:
-            saved_hours = json.load(f)
-
-        self.assertIn(new_hour, saved_hours)
-
-    def test_data_aggregation(self):
-        """Test aggregating activity data by application."""
-        # Sample minute-level data
-        minute_data = [
-            {"App1": 20.0, "App2": 40.0},
-            {"App1": 15.0, "App2": 35.0, "App3": 10.0},
-            {"App1": 25.0, "App3": 35.0},
-        ]
-
-        # Aggregate data
-        aggregated = {}
-        for minute in minute_data:
-            for app, time_spent in minute.items():
-                aggregated[app] = aggregated.get(app, 0) + time_spent
-
-        expected = {"App1": 60.0, "App2": 75.0, "App3": 45.0}
-        self.assertEqual(aggregated, expected)
-
-        # Test total time
-        total_time = sum(aggregated.values())
-        self.assertEqual(total_time, 180.0)
-
-    def test_data_format_validation(self):
-        """Test validation of sync data format."""
-        valid_data = {
-            "timestamp": "2024-01-15T14:00:00Z",
-            "hour": "2024-01-15_14",
-            "data": {
-                "applications": {"App1": 30.0},
-                "total_time": 30.0,
-                "files_processed": 1,
-            },
-            "source": "macos-activity-tracker",
-            "version": "1.0.0",
-        }
-
-        # Test required fields
-        required_fields = ["timestamp", "hour", "data"]
-        for field in required_fields:
-            self.assertIn(field, valid_data)
-
-        # Test data structure
-        self.assertIn("applications", valid_data["data"])
-        self.assertIn("total_time", valid_data["data"])
-        self.assertIsInstance(valid_data["data"]["applications"], dict)
-        self.assertIsInstance(valid_data["data"]["total_time"], (int, float))
-
-
-class TestSyncManagerIntegration(unittest.TestCase):
-    """Integration tests for SyncManager."""
-
-    def setUp(self):
-        """Set up integration test fixtures."""
-        self.temp_dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        """Clean up integration test fixtures."""
-        import shutil
-
-        shutil.rmtree(self.temp_dir)
-
-    @pytest.mark.integration
-    @patch("requests.post")
-    def test_full_sync_workflow(self, mock_post):
-        """Test complete sync workflow from files to API."""
-        # Mock successful response
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {"status": "success"}
-        mock_post.return_value = mock_response
-
-        # Create sync manager instance
-        SyncManager(data_dir=self.temp_dir, endpoint="https://test.example.com/api")
-
-        # Create sample data files
-        files_data = [
-            ("activity_20240115_1430.json", {"App1": 20.0, "App2": 40.0}),
-            ("activity_20240115_1431.json", {"App1": 15.0, "App2": 35.0}),
-            ("activity_20240115_1432.json", {"App1": 25.0, "App2": 25.0}),
-        ]
-
-        for filename, data in files_data:
-            filepath = Path(self.temp_dir) / filename
-            with open(filepath, "w") as f:
-                json.dump(data, f)
-
-        # Verify files exist
-        json_files = list(Path(self.temp_dir).glob("activity_*.json"))
-        self.assertEqual(len(json_files), 3)
-
-        # Test that sync manager can find and process files
-        # (TODO)
+        mock_print.assert_any_call("Unknown command: unknown")
 
 
 if __name__ == "__main__":

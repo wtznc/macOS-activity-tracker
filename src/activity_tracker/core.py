@@ -12,11 +12,9 @@ from .activity_monitor import ActivityLogger, ActivityMonitor
 from .storage import ActivityDataStore
 from .utils import get_data_directory
 
-# Maximum allowed total time per minute interval (in seconds).
-# Set to 65 to allow slight overflow due to timing imprecision between
-# app switches, polling intervals, and minute boundary detection.
-# If total exceeds this threshold, durations are proportionally scaled to 60s.
-MAX_MINUTE_TOTAL_SECONDS = 65
+# Target duration for each minute file (in seconds).
+# All minute files are normalized to sum to exactly this value.
+TARGET_MINUTE_SECONDS = 60.0
 
 
 class ActivityTracker:
@@ -153,8 +151,8 @@ class ActivityTracker:
             existing_session_data, current_app, time_since_boundary
         )
 
-        # Apply overflow scaling if needed
-        return self._apply_overflow_scaling(minute_bounded_data)
+        # Normalize to exactly 60 seconds
+        return self._normalize_to_minute(minute_bounded_data)
 
     def _get_current_app_time(
         self, current_app: Optional[str], start_time: float
@@ -200,13 +198,31 @@ class ActivityTracker:
 
         return minute_bounded_data
 
-    def _apply_overflow_scaling(self, data: dict) -> dict:
-        """Scale down durations if total exceeds maximum allowed time."""
+    def _normalize_to_minute(self, data: dict) -> dict:
+        """Normalize durations to sum to exactly 60 seconds with 2 decimal precision."""
+        if not data:
+            return data
+
         total_time = sum(data.values())
-        if total_time > MAX_MINUTE_TOTAL_SECONDS:
-            scale_factor = 60.0 / total_time
-            return {app: duration * scale_factor for app, duration in data.items()}
-        return data
+        if total_time <= 0:
+            return data
+
+        # Scale all durations proportionally to sum to exactly 60 seconds
+        scale_factor = TARGET_MINUTE_SECONDS / total_time
+        normalized = {
+            app: round(duration * scale_factor, 2) for app, duration in data.items()
+        }
+
+        # Adjust for rounding errors to ensure exact 60.00 total
+        current_total = sum(normalized.values())
+        diff = round(TARGET_MINUTE_SECONDS - current_total, 2)
+
+        if diff != 0 and normalized:
+            # Add/subtract difference from the largest entry
+            largest_app = max(normalized, key=lambda k: normalized[k])
+            normalized[largest_app] = round(normalized[largest_app] + diff, 2)
+
+        return normalized
 
     def _save_and_log(self, session_data: dict) -> None:
         """Save session data and log the operation."""
