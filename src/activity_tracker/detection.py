@@ -324,9 +324,7 @@ class TitleCleaner:
     # Terminal apps that commonly show spinners
     TERMINAL_APPS = {"iTerm2", "Terminal", "Alacritty", "Hyper", "kitty"}
 
-    def clean_title(
-        self, title: Optional[str], app_name: str = ""
-    ) -> Optional[str]:
+    def clean_title(self, title: Optional[str], app_name: str = "") -> Optional[str]:
         """Clean up window title by properly handling Unicode characters."""
         if not title:
             return title
