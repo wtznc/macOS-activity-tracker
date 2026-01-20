@@ -303,7 +303,28 @@ class TitleCleaner:
         "\u2717": "x",  # Ballot X
     }
 
-    def clean_title(self, title: str) -> str:
+    # Spinner characters used in terminal progress indicators
+    SPINNER_CHARS = set(
+        # Braille patterns (common spinners)
+        "\u2800\u2801\u2802\u2803\u2804\u2805\u2806\u2807"
+        "\u2808\u2809\u280a\u280b\u280c\u280d\u280e\u280f"
+        "\u2810\u2811\u2812\u2813\u2814\u2815\u2816\u2817"
+        "\u2818\u2819\u281a\u281b\u281c\u281d\u281e\u281f"
+        "\u2820\u2821\u2822\u2823\u2824\u2825\u2826\u2827"
+        "\u2828\u2829\u282a\u282b\u282c\u282d\u282e\u282f"
+        "\u2830\u2831\u2832\u2833\u2834\u2835\u2836\u2837"
+        "\u2838\u2839\u283a\u283b\u283c\u283d\u283e\u283f"
+        # Common ASCII spinner chars
+        "*|-/\\"
+        # Other progress indicators
+        "\u25cf\u25cb\u25d0\u25d1\u25d2\u25d3"  # Circles
+        "\u2713\u2717\u2715\u2716"  # Check/X marks
+    )
+
+    # Terminal apps that commonly show spinners
+    TERMINAL_APPS = {"iTerm2", "Terminal", "Alacritty", "Hyper", "kitty"}
+
+    def clean_title(self, title: str, app_name: str = "") -> str:
         """Clean up window title by properly handling Unicode characters."""
         if not title:
             return title
@@ -320,11 +341,34 @@ class TitleCleaner:
         for unicode_char, replacement in self.UNICODE_REPLACEMENTS.items():
             title = title.replace(unicode_char, replacement)
 
+        # Strip spinner prefixes (e.g., "* Task" or "⠐ Task" -> "Task")
+        title = self._strip_spinner_prefix(title)
+
         # VS Code specific cleaning
         if title.endswith(" — Visual Studio Code"):
             title = title[:-21]
         elif title.endswith(" - Visual Studio Code"):
-            title = title[:-20]
+            title = title[:-21]
+
+        return title
+
+    def _strip_spinner_prefix(self, title: str) -> str:
+        """Remove spinner character prefixes from titles."""
+        if not title or len(title) < 2:
+            return title
+
+        # Check for pattern: [spinner_char][space][rest]
+        if title[0] in self.SPINNER_CHARS and title[1] == " ":
+            return title[2:]
+
+        # Check for pattern: [spinner_char][spinner_char][space][rest] (double spinners)
+        if (
+            len(title) > 2
+            and title[0] in self.SPINNER_CHARS
+            and title[1] in self.SPINNER_CHARS
+            and title[2] == " "
+        ):
+            return title[3:]
 
         return title
 
