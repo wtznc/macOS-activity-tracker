@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HTTP synchronization client for Activity Tracker.
+HTTP synchronization client for Pulse.
 Handles all HTTP communication with remote endpoints.
 """
 
@@ -50,7 +50,7 @@ class SyncPayloadBuilder:
             "timestamp": dt.isoformat(),
             "hour": hour_key,
             "data": hour_data,
-            "source": "macos-activity-tracker",
+            "source": "macos-pulse",
             "device": self.device_identifier.get_device_name(),
             "version": "1.0",
         }

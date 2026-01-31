@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-macOS Activity Tracker Daemon
+Pulse Daemon
 Tracks time spent on applications and websites in the background.
 """
 
@@ -17,9 +17,9 @@ from .utils import get_data_directory
 TARGET_MINUTE_SECONDS = 60.0
 
 
-class ActivityTracker:
+class Pulse:
     """
-    macOS Activity Tracker - Orchestrates activity monitoring components.
+    Pulse - Orchestrates activity monitoring components.
 
     Uses composition to delegate responsibilities to specialized classes,
     following the Single Responsibility Principle.
@@ -35,7 +35,7 @@ class ActivityTracker:
         idle_threshold: int = 300,
     ):
         """
-        Initialize the Activity Tracker.
+        Initialize the Pulse.
 
         Args:
             data_dir (Optional[str]): Directory to store activity data files.
@@ -255,11 +255,8 @@ class ActivityTracker:
         self.data_store.merge_and_save_session_data(session_data)
 
     def start(self):
-        """Start the activity tracker."""
-        print(
-            f"Starting activity tracker... "
-            f"Data will be saved to {self.data_store.data_dir}"
-        )
+        """Start the Pulse."""
+        print(f"Starting Pulse... " f"Data will be saved to {self.data_store.data_dir}")
         idle_minutes = self.monitor.idle_detector.idle_threshold // 60
         print(
             f"AFK detection: Will pause tracking after "
@@ -269,8 +266,8 @@ class ActivityTracker:
         self.track_activity()
 
     def stop(self):
-        """Stop the activity tracker."""
-        print("Stopping activity tracker...")
+        """Stop the Pulse."""
+        print("Stopping Pulse...")
         self.running = False
 
 
@@ -302,8 +299,8 @@ def main():
                 return
 
     if "--help" in sys.argv or "-h" in sys.argv:
-        print("macOS Activity Tracker")
-        print("Usage: python activity_tracker.py [options]")
+        print("Pulse")
+        print("Usage: python pulse.py [options]")
         print("Options:")
         print("  --quiet, -q            Run in quiet mode (no logging)")
         print("  --fast, -f             Fast mode (app names only, no window titles)")
@@ -314,7 +311,7 @@ def main():
         print("  --help, -h             Show this help message")
         return
 
-    tracker = ActivityTracker(
+    tracker = Pulse(
         verbose=verbose,
         fast_mode=fast_mode,
         include_window_titles=include_window_titles,
@@ -327,7 +324,7 @@ def main():
         print("\nReceived interrupt signal")
     finally:
         tracker.stop()
-        print("Activity tracker stopped")
+        print("Pulse stopped")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 """
-macOS Activity Tracker - A lightweight application usage tracking tool.
+Pulse - A lightweight application usage tracking tool.
 
 This package provides comprehensive application and website usage tracking
 for macOS systems with features including:
@@ -16,12 +16,12 @@ __version__ = "1.0.0"
 __author__ = "Wojciech Tyziniec"
 __license__ = "MIT"
 
-from .core import ActivityTracker
+from .core import Pulse
 from .daemon import ActivityDaemon
 from .sync import SyncManager
 
 __all__ = [
-    "ActivityTracker",
+    "Pulse",
     "SyncManager",
     "ActivityDaemon",
 ]

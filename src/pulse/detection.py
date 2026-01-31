@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Application and window detection for macOS Activity Tracker.
+Application and window detection for Pulse.
 Handles all macOS-specific detection logic.
 """
 

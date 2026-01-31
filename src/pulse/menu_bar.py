@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Menu Bar Application for macOS Activity Tracker
+Menu Bar Application for Pulse
 Shows a menu bar icon when the tracker is running.
 """
 
@@ -30,25 +30,25 @@ except ImportError:
     exit(1)
 
 try:
-    from activity_tracker.core import ActivityTracker
-    from activity_tracker.sync import SyncManager
-    from activity_tracker.utils import get_data_directory
+    from pulse.core import Pulse
+    from pulse.sync import SyncManager
+    from pulse.utils import get_data_directory
 except ImportError:
     try:
-        from .core import ActivityTracker
+        from .core import Pulse
         from .sync import SyncManager
         from .utils import get_data_directory
     except ImportError:
         # If running as script, add parent directory to path
         sys.path.insert(0, str(Path(__file__).parent))
-        from core import ActivityTracker  # type: ignore[import,no-redef]
+        from core import Pulse  # type: ignore[import,no-redef]
         from sync import SyncManager  # type: ignore[import,no-redef]
         from utils import get_data_directory  # type: ignore[import,no-redef]
 
 
-class ActivityTrackerMenuBarDelegate(NSObject):
+class PulseMenuBarDelegate(NSObject):
     def init(self):
-        self = objc.super(ActivityTrackerMenuBarDelegate, self).init()
+        self = objc.super(PulseMenuBarDelegate, self).init()
         if self is None:
             return None
 
@@ -197,9 +197,9 @@ class ActivityTrackerMenuBarDelegate(NSObject):
             self.start_tracking()
 
     def start_tracking(self):
-        """Start the activity tracker."""
+        """Start the Pulse."""
         if not self.is_running:
-            self.tracker = ActivityTracker(
+            self.tracker = Pulse(
                 verbose=self.verbose_mode,
                 fast_mode=self.fast_mode,
                 include_window_titles=not self.fast_mode,
@@ -217,14 +217,14 @@ class ActivityTrackerMenuBarDelegate(NSObject):
             elif self.verbose_mode:
                 mode_desc = " (verbose logging with window titles)"
 
-            print(f"Activity tracking started{mode_desc}")
+            print(f"Tracking started{mode_desc}")
 
     def stop_tracking(self):
-        """Stop the activity tracker."""
+        """Stop the Pulse."""
         if self.is_running and self.tracker:
             self.tracker.stop()
             self.is_running = False
-            print("Activity tracking stopped")
+            print("Tracking stopped")
 
     @objc.IBAction
     def toggleVerbose_(self, sender):
@@ -329,7 +329,7 @@ class ActivityTrackerMenuBarDelegate(NSObject):
             # Create alert window
             alert = NSAlert.alloc().init()
             alert.setAlertStyle_(NSAlertStyleInformational)
-            alert.setMessageText_("Activity Tracker - Sync Status")
+            alert.setMessageText_("Pulse - Sync Status")
 
             # Format status information
             status_text = f"""Total hours available: {status['total_hours']}
@@ -374,7 +374,7 @@ Last sync: {status['last_sync'] if status['last_sync'] else 'Never'}"""
 class MenuBarApp:
     def __init__(self):
         self.app = NSApplication.sharedApplication()
-        self.delegate = ActivityTrackerMenuBarDelegate.alloc().init()
+        self.delegate = PulseMenuBarDelegate.alloc().init()
 
         # Set up the app
         self.app.setActivationPolicy_(2)  # NSApplicationActivationPolicyAccessory
@@ -382,7 +382,7 @@ class MenuBarApp:
     def run(self):
         """Run the menu bar application."""
         print("Starting menu bar app...")
-        print("Look for the activity tracker icon in your menu bar")
+        print("Look for the Pulse icon in your menu bar")
 
         try:
             self.app.run()

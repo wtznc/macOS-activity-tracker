@@ -1,4 +1,4 @@
-"""Configuration management for Activity Tracker."""
+"""Configuration management for Pulse."""
 
 import json
 import os
@@ -23,7 +23,7 @@ DEFAULT_CONFIG = {
 
 
 class Config:
-    """Configuration manager for Activity Tracker."""
+    """Configuration manager for Pulse."""
 
     def __init__(self, config_dir: Optional[str] = None):
         """Initialize configuration manager.
@@ -36,11 +36,7 @@ class Config:
         else:
             # Use standard macOS application support directory
             self.config_dir = (
-                Path.home()
-                / "Library"
-                / "Application Support"
-                / "ActivityTracker"
-                / "config"
+                Path.home() / "Library" / "Application Support" / "Pulse" / "config"
             )
 
         self.config_file = self.config_dir / "settings.json"
@@ -160,9 +156,7 @@ class Config:
         data_dir = self.get("data_dir")
         if data_dir:
             return Path(data_dir)
-        return (
-            Path.home() / "Library" / "Application Support" / "ActivityTracker" / "data"
-        )
+        return Path.home() / "Library" / "Application Support" / "Pulse" / "data"
 
 
 def load_config_from_env() -> Dict[str, Any]:
@@ -175,14 +169,14 @@ def load_config_from_env() -> Dict[str, Any]:
 
     # Map environment variables to config keys
     env_mappings = {
-        "ACTIVITY_TRACKER_DATA_DIR": "data_dir",
-        "ACTIVITY_TRACKER_ENDPOINT": "sync_endpoint",
-        "ACTIVITY_TRACKER_AUTH_TOKEN": "sync_auth_token",  # nosec B105
-        "ACTIVITY_TRACKER_IDLE_THRESHOLD": "idle_threshold",
-        "ACTIVITY_TRACKER_FAST_MODE": "fast_mode",
-        "ACTIVITY_TRACKER_VERBOSE": "verbose_logging",
-        "ACTIVITY_TRACKER_INTERVAL": "save_interval",
-        "ACTIVITY_TRACKER_SYNC_INTERVAL": "sync_interval",
+        "PULSE_DATA_DIR": "data_dir",
+        "PULSE_ENDPOINT": "sync_endpoint",
+        "PULSE_AUTH_TOKEN": "sync_auth_token",  # nosec B105
+        "PULSE_IDLE_THRESHOLD": "idle_threshold",
+        "PULSE_FAST_MODE": "fast_mode",
+        "PULSE_VERBOSE": "verbose_logging",
+        "PULSE_INTERVAL": "save_interval",
+        "PULSE_SYNC_INTERVAL": "sync_interval",
     }
 
     for env_var, config_key in env_mappings.items():
@@ -218,7 +212,7 @@ def get_default_data_dir() -> Path:
     Returns:
         Path to default data directory
     """
-    return Path.home() / "Library" / "Application Support" / "ActivityTracker" / "data"
+    return Path.home() / "Library" / "Application Support" / "Pulse" / "data"
 
 
 def ensure_data_dir(data_dir: Path) -> None:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Sync Manager for Activity Tracker
+Sync Manager for Pulse
 Orchestrates data aggregation and HTTP synchronization.
 """
 
@@ -49,7 +49,7 @@ class SyncManager:
         if not self.endpoint:
             print("Error: No sync endpoint configured.")
             print(
-                "Set ACTIVITY_TRACKER_ENDPOINT environment variable or "
+                "Set PULSE_ENDPOINT environment variable or "
                 "provide endpoint parameter."
             )
             return {"synced": 0, "failed": 0, "skipped": 0}
@@ -105,13 +105,13 @@ def main():
     import sys
 
     # Get configuration from environment variables
-    endpoint = os.getenv("ACTIVITY_TRACKER_ENDPOINT", "")
-    auth_token = os.getenv("ACTIVITY_TRACKER_AUTH_TOKEN", "")
+    endpoint = os.getenv("PULSE_ENDPOINT", "")
+    auth_token = os.getenv("PULSE_AUTH_TOKEN", "")
 
     sync_manager = SyncManager(endpoint=endpoint, auth_token=auth_token)
 
     if len(sys.argv) == 1 or "--help" in sys.argv:
-        print("Sync Manager for Activity Tracker")
+        print("Sync Manager for Pulse")
         print("Usage: python sync_manager.py [command]")
         print("Commands:")
         print("  status    Show sync status")
@@ -119,8 +119,8 @@ def main():
         print("  force     Force sync all data (including already synced)")
         print("  recent    Sync only last 24 hours")
         print("\nEnvironment Variables:")
-        print("  ACTIVITY_TRACKER_ENDPOINT      Sync endpoint URL (required for sync)")
-        print("  ACTIVITY_TRACKER_AUTH_TOKEN    Bearer token for authentication")
+        print("  PULSE_ENDPOINT      Sync endpoint URL (required for sync)")
+        print("  PULSE_AUTH_TOKEN    Bearer token for authentication")
         return
 
     command = sys.argv[1]
