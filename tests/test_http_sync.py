@@ -12,7 +12,7 @@ class TestDeviceIdentifier(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        from activity_tracker.http_sync import DeviceIdentifier
+        from pulse.http_sync import DeviceIdentifier
 
         self.identifier = DeviceIdentifier()
 
@@ -62,7 +62,7 @@ class TestSyncPayloadBuilder(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        from activity_tracker.http_sync import SyncPayloadBuilder
+        from pulse.http_sync import SyncPayloadBuilder
 
         self.builder = SyncPayloadBuilder()
 
@@ -84,7 +84,7 @@ class TestSyncPayloadBuilder(unittest.TestCase):
 
         self.assertEqual(result["hour"], "2024-01-15_14")
         self.assertEqual(result["data"], hour_data)
-        self.assertEqual(result["source"], "macos-activity-tracker")
+        self.assertEqual(result["source"], "macos-pulse")
         self.assertEqual(result["device"], "test-device")
         self.assertEqual(result["version"], "1.0")
 
@@ -110,7 +110,7 @@ class TestHttpSyncClient(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        from activity_tracker.http_sync import HttpSyncClient
+        from pulse.http_sync import HttpSyncClient
 
         self.client = HttpSyncClient(endpoint="https://test.example.com/api")
 
@@ -198,7 +198,7 @@ class TestSyncResultCollector(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        from activity_tracker.http_sync import SyncResultCollector
+        from pulse.http_sync import SyncResultCollector
 
         self.collector = SyncResultCollector()
 

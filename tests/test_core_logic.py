@@ -1,18 +1,18 @@
-"""Tests for internal logic of ActivityTracker."""
+"""Tests for internal logic of Pulse."""
 
 import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-from activity_tracker.core import TARGET_MINUTE_SECONDS, ActivityTracker
+from pulse.core import TARGET_MINUTE_SECONDS, Pulse
 
 
-class TestActivityTrackerLogic(unittest.TestCase):
-    """Test cases for internal logic methods of ActivityTracker."""
+class TestPulseLogic(unittest.TestCase):
+    """Test cases for internal logic methods of Pulse."""
 
     def setUp(self):
         """Set up test fixtures."""
-        self.tracker = ActivityTracker(
+        self.tracker = Pulse(
             data_dir="/tmp",
             interval=60,
             verbose=False,
@@ -28,7 +28,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
         self.tracker.last_check_time = datetime(2023, 1, 1, 12, 0, 0)
 
         # Patch datetime to return a time in the next minute
-        with patch("activity_tracker.core.datetime") as mock_datetime:
+        with patch("pulse.core.datetime") as mock_datetime:
             mock_datetime.now.return_value = datetime(2023, 1, 1, 12, 1, 0)
             result = self.tracker._is_minute_boundary()
 
@@ -39,7 +39,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
         """Test when minute boundary is not crossed."""
         self.tracker.last_check_time = datetime(2023, 1, 1, 12, 0, 0)
 
-        with patch("activity_tracker.core.datetime") as mock_datetime:
+        with patch("pulse.core.datetime") as mock_datetime:
             mock_datetime.now.return_value = datetime(2023, 1, 1, 12, 0, 30)
             result = self.tracker._is_minute_boundary()
 
@@ -54,7 +54,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
         start_time = 900.0
 
         # Current time at 1030
-        with patch("activity_tracker.core.time.time", return_value=1030.0):
+        with patch("pulse.core.time.time", return_value=1030.0):
             result = self.tracker._calculate_time_in_current_minute(
                 start_time, last_boundary
             )
@@ -70,7 +70,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
         start_time = 1010.0
 
         # Current time at 1030
-        with patch("activity_tracker.core.time.time", return_value=1030.0):
+        with patch("pulse.core.time.time", return_value=1030.0):
             result = self.tracker._calculate_time_in_current_minute(
                 start_time, last_boundary
             )
@@ -86,12 +86,12 @@ class TestActivityTrackerLogic(unittest.TestCase):
         self.assertEqual(self.tracker._get_current_app_time(None, 1000), 0.0)
 
         # Case 2: Normal duration (30s)
-        with patch("activity_tracker.core.time.time", return_value=1030.0):
+        with patch("pulse.core.time.time", return_value=1030.0):
             result = self.tracker._get_current_app_time("App", 1000.0)
             self.assertEqual(result, 30.0)
 
         # Case 3: Overflow (>60s) - should cap at 60
-        with patch("activity_tracker.core.time.time", return_value=1070.0):
+        with patch("pulse.core.time.time", return_value=1070.0):
             result = self.tracker._get_current_app_time("App", 1000.0)
             self.assertEqual(result, 60.0)
 
@@ -144,7 +144,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
 
         # Mock time.time to define max_reasonable_time window
         # current_time = 1030, last_boundary = 1000 -> max 30s window
-        with patch("activity_tracker.core.time.time", return_value=1030.0):
+        with patch("pulse.core.time.time", return_value=1030.0):
             result = self.tracker._build_bounded_data(
                 session_data, current_app, time_since_boundary
             )
@@ -161,7 +161,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
         current_app = None
         time_since_boundary = 0.0
 
-        with patch("activity_tracker.core.time.time", return_value=1030.0):
+        with patch("pulse.core.time.time", return_value=1030.0):
             result = self.tracker._build_bounded_data(
                 session_data, current_app, time_since_boundary
             )
@@ -187,7 +187,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
         self.tracker._save_and_log = MagicMock()
 
         start_time = 1000.0
-        with patch("activity_tracker.core.time.time", return_value=1060.0):
+        with patch("pulse.core.time.time", return_value=1060.0):
             new_start_time = self.tracker._check_save_interval("App", start_time)
 
         self.assertEqual(new_start_time, 1060.0)
@@ -200,7 +200,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
 
         self.tracker.monitor.clear_session_data.return_value = {"Other": 5}
 
-        with patch("activity_tracker.core.time.time", return_value=1010.0):
+        with patch("pulse.core.time.time", return_value=1010.0):
             self.tracker._save_final_data(current_app, start_time)
 
         # Should add activity for current app (10s)
@@ -232,10 +232,8 @@ class TestActivityTrackerLogic(unittest.TestCase):
         def stop_loop(*args):
             self.tracker.running = False
 
-        with patch(
-            "activity_tracker.core.time.sleep", side_effect=stop_loop
-        ) as mock_sleep:
-            with patch("activity_tracker.core.time.time", return_value=1000.0):
+        with patch("pulse.core.time.sleep", side_effect=stop_loop) as mock_sleep:
+            with patch("pulse.core.time.time", return_value=1000.0):
                 self.tracker.track_activity()
 
         # Verify call chain
@@ -257,9 +255,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
         def stop_loop(*args):
             self.tracker.running = False
 
-        with patch(
-            "activity_tracker.core.time.sleep", side_effect=stop_loop
-        ) as mock_sleep:
+        with patch("pulse.core.time.sleep", side_effect=stop_loop) as mock_sleep:
             self.tracker.track_activity()
 
         # Should check idle and sleep, but NOT get activity
@@ -281,9 +277,7 @@ class TestActivityTrackerLogic(unittest.TestCase):
         def stop_loop(*args):
             self.tracker.running = False
 
-        with patch(
-            "activity_tracker.core.time.sleep", side_effect=stop_loop
-        ) as mock_sleep:
+        with patch("pulse.core.time.sleep", side_effect=stop_loop) as mock_sleep:
             with patch("builtins.print") as mock_print:
                 self.tracker.track_activity()
 

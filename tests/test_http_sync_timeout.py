@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import requests
 
-from activity_tracker.http_sync import HttpSyncClient
+from pulse.http_sync import HttpSyncClient
 
 
 class TestHttpSyncTimeout(unittest.TestCase):

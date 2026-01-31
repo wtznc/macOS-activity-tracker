@@ -29,7 +29,7 @@ class TestActivityDaemon(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.daemon import ActivityDaemon
+            from pulse.daemon import ActivityDaemon
 
             self.daemon = ActivityDaemon(pidfile=self.pid_file)
 
@@ -54,11 +54,11 @@ class TestActivityDaemon(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.daemon import ActivityDaemon
+            from pulse.daemon import ActivityDaemon
 
             daemon = ActivityDaemon()
 
-        self.assertIn("activity_tracker.pid", daemon.pidfile)
+        self.assertIn("pulse.pid", daemon.pidfile)
 
     @patch("os.fork")
     @patch("os.setsid")
@@ -143,7 +143,7 @@ class TestActivityDaemon(unittest.TestCase):
 
         with patch.object(self.daemon, "daemonize") as mock_daemonize:
             # Patch the class as imported in daemon module
-            with patch("activity_tracker.daemon.ActivityTracker") as mock_tracker:
+            with patch("pulse.daemon.Pulse") as mock_tracker:
                 self.daemon.start()
 
         # Should remove file and start
@@ -156,7 +156,7 @@ class TestActivityDaemon(unittest.TestCase):
             f.write("invalid")
 
         with patch.object(self.daemon, "daemonize") as mock_daemonize:
-            with patch("activity_tracker.daemon.ActivityTracker"):
+            with patch("pulse.daemon.Pulse"):
                 self.daemon.start()
 
         self.assertFalse(os.path.exists(self.pid_file))
@@ -225,10 +225,10 @@ class TestActivityDaemon(unittest.TestCase):
         self.daemon.tracker.stop.assert_called_once()
         self.assertFalse(os.path.exists(self.pid_file))
 
-    @patch("activity_tracker.daemon.ActivityDaemon")
+    @patch("pulse.daemon.ActivityDaemon")
     def test_main_commands(self, mock_daemon_class):
         """Test CLI commands."""
-        from activity_tracker.daemon import main
+        from pulse.daemon import main
 
         mock_daemon = mock_daemon_class.return_value
 

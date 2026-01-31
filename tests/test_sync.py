@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
-from activity_tracker.sync import SyncManager, main
+from pulse.sync import SyncManager, main
 
 
 class TestSyncManager(unittest.TestCase):
@@ -181,7 +181,7 @@ class TestSyncManager(unittest.TestCase):
 class TestSyncCLI(unittest.TestCase):
     """Test cases for SyncManager CLI."""
 
-    @patch("activity_tracker.sync.SyncManager")
+    @patch("pulse.sync.SyncManager")
     def test_main_status(self, mock_manager_class):
         """Test main status command."""
         mock_manager = mock_manager_class.return_value
@@ -201,7 +201,7 @@ class TestSyncCLI(unittest.TestCase):
         mock_manager.get_sync_status.assert_called()
         mock_print.assert_any_call("Sync Status:")
 
-    @patch("activity_tracker.sync.SyncManager")
+    @patch("pulse.sync.SyncManager")
     def test_main_sync(self, mock_manager_class):
         """Test main sync command."""
         mock_manager = mock_manager_class.return_value
@@ -213,7 +213,7 @@ class TestSyncCLI(unittest.TestCase):
 
         mock_manager.sync_all.assert_called_with()
 
-    @patch("activity_tracker.sync.SyncManager")
+    @patch("pulse.sync.SyncManager")
     def test_main_force(self, mock_manager_class):
         """Test main force command."""
         mock_manager = mock_manager_class.return_value
@@ -225,7 +225,7 @@ class TestSyncCLI(unittest.TestCase):
 
         mock_manager.sync_all.assert_called_with(force=True)
 
-    @patch("activity_tracker.sync.SyncManager")
+    @patch("pulse.sync.SyncManager")
     def test_main_recent(self, mock_manager_class):
         """Test main recent command."""
         mock_manager = mock_manager_class.return_value
@@ -244,7 +244,7 @@ class TestSyncCLI(unittest.TestCase):
                 main()
 
         args, _ = mock_print.call_args_list[0]
-        self.assertEqual(args[0], "Sync Manager for Activity Tracker")
+        self.assertEqual(args[0], "Sync Manager for Pulse")
 
     def test_main_unknown_command(self):
         """Test main unknown command."""

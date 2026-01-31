@@ -1,1 +1,1 @@
-"""Tests for macOS Activity Tracker."""
+"""Tests for Pulse."""

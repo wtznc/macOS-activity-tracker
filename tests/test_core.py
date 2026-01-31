@@ -1,4 +1,4 @@
-"""Tests for core ActivityTracker functionality."""
+"""Tests for core Pulse functionality."""
 
 import json
 import tempfile
@@ -9,16 +9,16 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from activity_tracker.core import ActivityTracker
+from pulse.core import Pulse
 
 
-class TestActivityTracker(unittest.TestCase):
-    """Test cases for ActivityTracker class."""
+class TestPulse(unittest.TestCase):
+    """Test cases for Pulse class."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
-        self.tracker = ActivityTracker(
+        self.tracker = Pulse(
             data_dir=self.temp_dir,
             interval=60,
             verbose=False,
@@ -34,7 +34,7 @@ class TestActivityTracker(unittest.TestCase):
         shutil.rmtree(self.temp_dir)
 
     def test_initialization(self):
-        """Test ActivityTracker initialization."""
+        """Test Pulse initialization."""
         self.assertEqual(self.tracker.data_store.data_dir, Path(self.temp_dir))
         self.assertEqual(self.tracker.interval, 60)
         self.assertFalse(self.tracker.logger.verbose)
@@ -46,7 +46,7 @@ class TestActivityTracker(unittest.TestCase):
         self.assertTrue(self.tracker.data_store.data_dir.exists())
         self.assertTrue(self.tracker.data_store.data_dir.is_dir())
 
-    @patch("activity_tracker.detection.NSWorkspace")
+    @patch("pulse.detection.NSWorkspace")
     def test_get_active_application(self, mock_workspace_class):
         """Test getting active application."""
         # Mock the NSWorkspace response - activeApplication returns a dict
@@ -76,7 +76,7 @@ class TestActivityTracker(unittest.TestCase):
     def test_idle_detection(self):
         """Test idle detection logic."""
         with patch(
-            "activity_tracker.detection.CGEventSourceSecondsSinceLastEventType"
+            "pulse.detection.CGEventSourceSecondsSinceLastEventType"
         ) as mock_idle:
             # Test not idle
             mock_idle.return_value = 100  # 100 seconds since last event
@@ -127,22 +127,22 @@ class TestActivityTracker(unittest.TestCase):
     def test_fast_mode_vs_detailed_mode(self):
         """Test performance difference between modes."""
         # Test fast mode configuration
-        fast_tracker = ActivityTracker(
+        fast_tracker = Pulse(
             data_dir=self.temp_dir, fast_mode=True, include_window_titles=False
         )
         self.assertFalse(fast_tracker.monitor.include_window_titles)
         self.assertIsNone(fast_tracker.monitor.window_detector)
 
         # Test detailed mode configuration
-        detailed_tracker = ActivityTracker(
+        detailed_tracker = Pulse(
             data_dir=self.temp_dir, fast_mode=False, include_window_titles=True
         )
         self.assertTrue(detailed_tracker.monitor.include_window_titles)
         self.assertIsNotNone(detailed_tracker.monitor.window_detector)
 
 
-class TestActivityTrackerIntegration(unittest.TestCase):
-    """Integration tests for ActivityTracker."""
+class TestPulseIntegration(unittest.TestCase):
+    """Integration tests for Pulse."""
 
     def setUp(self):
         """Set up integration test fixtures."""
@@ -157,7 +157,7 @@ class TestActivityTrackerIntegration(unittest.TestCase):
     @pytest.mark.integration
     def test_full_tracking_cycle(self):
         """Test a complete tracking cycle."""
-        tracker = ActivityTracker(
+        tracker = Pulse(
             data_dir=self.temp_dir,
             interval=1,  # 1 second for faster testing
             verbose=False,
@@ -183,7 +183,7 @@ class TestActivityTrackerIntegration(unittest.TestCase):
         """Test performance of different tracking modes."""
 
         # Test fast mode performance
-        fast_tracker = ActivityTracker(data_dir=self.temp_dir, fast_mode=True)
+        fast_tracker = Pulse(data_dir=self.temp_dir, fast_mode=True)
 
         start_time = time.time()
         for _ in range(100):
@@ -191,7 +191,7 @@ class TestActivityTrackerIntegration(unittest.TestCase):
         fast_time = time.time() - start_time
 
         # Test detailed mode performance
-        detailed_tracker = ActivityTracker(data_dir=self.temp_dir, fast_mode=False)
+        detailed_tracker = Pulse(data_dir=self.temp_dir, fast_mode=False)
 
         start_time = time.time()
         for _ in range(100):

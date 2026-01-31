@@ -13,7 +13,7 @@ class TestActivityFileParser(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        from activity_tracker.data_aggregator import ActivityFileParser
+        from pulse.data_aggregator import ActivityFileParser
 
         self.parser = ActivityFileParser()
 
@@ -50,7 +50,7 @@ class TestDataAggregator(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
-        from activity_tracker.data_aggregator import DataAggregator
+        from pulse.data_aggregator import DataAggregator
 
         self.aggregator = DataAggregator(data_dir=self.temp_dir)
 
@@ -139,7 +139,7 @@ class TestSyncStateManager(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
-        from activity_tracker.data_aggregator import SyncStateManager
+        from pulse.data_aggregator import SyncStateManager
 
         self.manager = SyncStateManager(data_dir=self.temp_dir)
 
@@ -169,7 +169,7 @@ class TestSyncStateManager(unittest.TestCase):
         self.manager.mark_hour_synced("2024-01-15_15")
 
         # Create a new manager instance
-        from activity_tracker.data_aggregator import SyncStateManager
+        from pulse.data_aggregator import SyncStateManager
 
         new_manager = SyncStateManager(data_dir=self.temp_dir)
 
