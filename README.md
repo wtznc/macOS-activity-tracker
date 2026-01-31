@@ -1,9 +1,9 @@
-# macOS Activity Tracker
+# Pulse
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![macOS](https://img.shields.io/badge/macOS-10.14+-green.svg)](https://www.apple.com/macos/)
-[![Coverage](https://codecov.io/gh/wtznc/macOS-activity-tracker/branch/main/graph/badge.svg)](https://codecov.io/gh/wtznc/macOS-activity-tracker)
+[![Coverage](https://codecov.io/gh/wtznc/pulse/branch/main/graph/badge.svg)](https://codecov.io/gh/wtznc/pulse)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 A lightweight, privacy-focused macOS application that tracks your application usage and provides detailed insights into your digital productivity patterns.
@@ -22,10 +22,10 @@ A lightweight, privacy-focused macOS application that tracks your application us
 
 ### Download Release (Recommended)
 
-Download the latest DMG from [GitHub Releases](https://github.com/wtznc/macOS-activity-tracker/releases):
+Download the latest DMG from [GitHub Releases](https://github.com/wtznc/pulse/releases):
 
-1. **Download** the `ActivityTracker-{version}.dmg` file
-2. **Open** the DMG and drag "Activity Tracker.app" to Applications folder
+1. **Download** the `Pulse-{version}.dmg` file
+2. **Open** the DMG and drag "Pulse.app" to Applications folder
 3. **Launch** the app from Applications or Launchpad
 4. **Grant** Accessibility permissions when prompted
 
@@ -35,8 +35,8 @@ The app is **self-contained** - no Python installation required!
 
 ```bash
 # Clone the repository
-git clone https://github.com/wtznc/macOS-activity-tracker.git
-cd macOS-activity-tracker
+git clone https://github.com/wtznc/pulse.git
+cd pulse
 
 # Install build dependencies
 make install-build
@@ -44,28 +44,28 @@ make install-build
 # Build the macOS app bundle
 make app
 
-# Find your app in dist/Activity Tracker.app
+# Find your app in dist/Pulse.app
 ```
 
 ### Developer Installation
 
 ```bash
 # Clone and install for development
-git clone https://github.com/wtznc/macOS-activity-tracker.git
-cd macOS-activity-tracker
+git clone https://github.com/wtznc/pulse.git
+cd pulse
 
 # Install in development mode
 make install-dev
 
 # Run directly from source
-python -m activity_tracker.menu_bar
+python -m pulse.menu_bar
 ```
 
 ## Usage
 
 ### Menu Bar App
 
-After installation, look for the Activity Tracker icon in your menu bar:
+After installation, look for the Pulse icon in your menu bar:
 
 - ● **Green dot**: Tracking active
 - ○ **Gray dot**: Tracking paused
@@ -80,32 +80,32 @@ After installation, look for the Activity Tracker icon in your menu bar:
 
 ```bash
 # Launch menu bar app (development installation only)
-activity-tracker-menu
+pulse-menu
 
 # Start tracking with console output (development installation only)
-activity-tracker
+pulse
 
 # Fast mode (app names only, ~600x faster)
-activity-tracker --fast
+pulse --fast
 
 # Custom AFK threshold (default: 5 minutes)
-activity-tracker --idle-threshold 120
+pulse --idle-threshold 120
 
 # Check sync status
-activity-tracker-sync status
+pulse-sync status
 ```
 
 #### Data Synchronization (Development Only)
 
 ```bash
 # Check sync status
-activity-tracker-sync status
+pulse-sync status
 
 # Sync all pending data
-activity-tracker-sync sync
+pulse-sync sync
 
 # View current device name
-activity-tracker-sync status | grep Device
+pulse-sync status | grep Device
 ```
 
 **Sync Data Format**: Data is grouped by hour and includes device identification:
@@ -128,7 +128,7 @@ activity-tracker-sync status | grep Device
 
 Activity data is stored locally in JSON format at:
 ```
-~/Library/Application Support/ActivityTracker/
+~/Library/Application Support/Pulse/
 ```
 
 ### Example Data Format
@@ -146,7 +146,7 @@ Activity data is stored locally in JSON format at:
 
 Configure via menu bar app settings or edit:
 ```
-~/Library/Application Support/ActivityTracker/config/settings.json
+~/Library/Application Support/Pulse/config/settings.json
 ```
 
 ```json
@@ -204,8 +204,8 @@ make install-build
 
 ```bash
 # Setup development environment
-git clone https://github.com/wtznc/macOS-activity-tracker.git
-cd macOS-activity-tracker
+git clone https://github.com/wtznc/pulse.git
+cd pulse
 make install-dev
 
 # Build the app bundle

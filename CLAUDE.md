@@ -14,14 +14,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 make install-dev
 
 # Run from source
-python -m activity_tracker.menu_bar
+python -m pulse.menu_bar
 
 # Build macOS app bundle
 make install-build  # Install PyInstaller first
-make app            # Creates dist/Activity Tracker.app
+make app            # Creates dist/Pulse.app
 
 # Run tests
-make test                    # Run all tests with coverage
+make test                    # Run all tests
+make test-cov                # Run tests with coverage report
 pytest tests/test_core.py    # Run single test file
 pytest -k "test_name"        # Run specific test by name
 
@@ -37,11 +38,11 @@ make clean
 
 This is a macOS menu bar application that tracks application usage time. The codebase follows a composition-based architecture with single-responsibility classes.
 
-### Core Components (src/activity_tracker/)
+### Core Components (src/pulse/)
 
 **Entry Points:**
 - `menu_bar.py` - Native macOS menu bar app using PyObjC (main user-facing interface)
-- `core.py` - CLI entry point and `ActivityTracker` class that orchestrates tracking
+- `core.py` - CLI entry point and `Pulse` class that orchestrates tracking
 - `daemon.py` - Background daemon mode
 - `sync.py` - CLI for data synchronization
 
@@ -56,7 +57,7 @@ This is a macOS menu bar application that tracks application usage time. The cod
 - `ActivityLogger` - Handles verbose console output
 
 **Storage Layer (`storage.py`):**
-- `ActivityDataStore` - Persists per-minute JSON files to ~/Library/Application Support/ActivityTracker/
+- `ActivityDataStore` - Persists per-minute JSON files to ~/Library/Application Support/Pulse/
 - `SessionTracker` - Tracks in-memory session data
 
 **Sync Layer:**

@@ -1,6 +1,6 @@
 # Roadmap
 
-Long-term vision for macOS Activity Tracker.
+Long-term vision for Pulse.
 
 ---
 
