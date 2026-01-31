@@ -3,7 +3,7 @@ requires = ["setuptools>=78.1.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "macOS-activity-tracker"
+name = "pulse"
 version = "1.0.13"
 description = "A lightweight macOS application usage tracking tool with AFK detection and data synchronization"
 readme = "README.md"
@@ -16,7 +16,7 @@ maintainers = [
 ]
 keywords = [
     "macos",
-    "activity-tracker",
+    "pulse",
     "time-tracking",
     "productivity",
     "application-monitoring",
@@ -73,22 +73,22 @@ lint = [
 ]
 
 [project.scripts]
-activity-tracker = "activity_tracker.core:main"
-activity-tracker-menu = "activity_tracker.menu_bar:main"
-activity-tracker-daemon = "activity_tracker.daemon:main"
-activity-tracker-sync = "activity_tracker.sync:main"
+pulse = "pulse.core:main"
+pulse-menu = "pulse.menu_bar:main"
+pulse-daemon = "pulse.daemon:main"
+pulse-sync = "pulse.sync:main"
 
 [project.urls]
-Homepage = "https://github.com/wtznc/macOS-activity-tracker"
-Repository = "https://github.com/wtznc/macOS-activity-tracker"
-Issues = "https://github.com/wtznc/macOS-activity-tracker/issues"
-Changelog = "https://github.com/wtznc/macOS-activity-tracker/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/wtznc/pulse"
+Repository = "https://github.com/wtznc/pulse"
+Issues = "https://github.com/wtznc/pulse/issues"
+Changelog = "https://github.com/wtznc/pulse/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-activity_tracker = ["*.plist"]
+pulse = ["*.plist"]
 
 # Black configuration
 [tool.black]
@@ -114,7 +114,7 @@ extend-exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
-known_first_party = ["activity_tracker"]
+known_first_party = ["pulse"]
 skip_glob = ["**/migrations/*"]
 
 # MyPy configuration
@@ -140,7 +140,7 @@ module = [
     "Quartz.*",
     "psutil.*",
     "objc.*",
-    "activity_tracker_legacy",
+    "pulse_legacy",
 ]
 ignore_missing_imports = true
 
@@ -150,7 +150,7 @@ minversion = "7.0"
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "--cov=activity_tracker",
+    "--cov=pulse",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
@@ -167,7 +167,7 @@ markers = [
 
 # Coverage configuration
 [tool.coverage.run]
-source = ["src/activity_tracker"]
+source = ["src/pulse"]
 omit = [
     "*/tests/*",
     "*/test_*",
