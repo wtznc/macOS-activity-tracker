@@ -6,7 +6,7 @@ set -e
 
 # Configuration
 APP_NAME="Pulse"
-VERSION="${VERSION:-1.0.2}"  # Use environment variable if set, otherwise default
+VERSION="${VERSION:-1.0.13}"  # Use environment variable if set, otherwise default
 DIST_DIR="dist"
 
 # Colors

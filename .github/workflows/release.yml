@@ -2,68 +2,136 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - 'pulse.spec'
+      - 'Makefile'
+      - '.github/workflows/release.yml'
 
 permissions:
   contents: write
   packages: write
 
 jobs:
-  build-and-publish:
+  release:
     runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v5
       with:
         fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Find merged PR and determine bump type
+      id: bump
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const commits = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+          });
+          const merged = commits.data.find(pr => pr.merged_at);
+          if (!merged) {
+            core.setOutput('skip', 'true');
+            return;
+          }
+          core.setOutput('skip', 'false');
+          core.setOutput('pr_number', merged.number);
+          core.setOutput('pr_title', merged.title);
+          const labels = merged.labels.map(l => l.name);
+          if (labels.includes('major')) {
+            core.setOutput('bump', 'major');
+          } else if (labels.includes('minor')) {
+            core.setOutput('bump', 'minor');
+          } else {
+            core.setOutput('bump', 'patch');
+          }
+
+    - name: Skip if no merged PR
+      if: steps.bump.outputs.skip == 'true'
+      run: |
+        echo "No merged PR found, skipping release."
+        exit 0
+
+    - name: Compute new version
+      if: steps.bump.outputs.skip != 'true'
+      id: version
+      run: |
+        CURRENT=$(grep -m1 '^version' pyproject.toml | sed 's/.*"\(.*\)"/\1/')
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+        BUMP="${{ steps.bump.outputs.bump }}"
+        if [ "$BUMP" = "major" ]; then
+          MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+        elif [ "$BUMP" = "minor" ]; then
+          MINOR=$((MINOR + 1)); PATCH=0
+        else
+          PATCH=$((PATCH + 1))
+        fi
+        NEW="$MAJOR.$MINOR.$PATCH"
+        echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+        echo "new=$NEW" >> "$GITHUB_OUTPUT"
+        echo "Bumping $CURRENT -> $NEW ($BUMP)"
+
+    - name: Update version in source files
+      if: steps.bump.outputs.skip != 'true'
+      run: |
+        NEW="${{ steps.version.outputs.new }}"
+        sed -i '' "s/^version = \".*\"/version = \"$NEW\"/" pyproject.toml
+        sed -i '' "s/^__version__ = \".*\"/__version__ = \"$NEW\"/" src/pulse/__init__.py
+
+    - name: Commit version bump and create tag
+      if: steps.bump.outputs.skip != 'true'
+      run: |
+        NEW="${{ steps.version.outputs.new }}"
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add pyproject.toml src/pulse/__init__.py
+        git commit -m "bump version to $NEW"
+        git tag "v$NEW"
+        git push origin main --tags
 
     - name: Set up Python
+      if: steps.bump.outputs.skip != 'true'
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    - name: Set version from tag
-      run: |
-        VERSION=${GITHUB_REF#refs/tags/v}
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "Building version: $VERSION"
-
     - name: Install build dependencies
+      if: steps.bump.outputs.skip != 'true'
       run: |
         python -m pip install --upgrade pip
-        pip install build twine
+        pip install build
         pip install -e ".[dev,build]"
 
     - name: Build package
+      if: steps.bump.outputs.skip != 'true'
       run: python -m build
 
     - name: Build macOS App Bundle
+      if: steps.bump.outputs.skip != 'true'
       env:
-        VERSION: ${{ env.VERSION }}
+        VERSION: ${{ steps.version.outputs.new }}
       run: |
         chmod +x scripts/build-app.sh
         CI=true CREATE_DMG=true ./scripts/build-app.sh
 
-    - name: Generate changelog
-      run: |
-        # Extract changelog for this version
-
-        if [ -f CHANGELOG.md ]; then
-          awk "/^## \[$VERSION\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md > release_notes.txt
-        else
-          echo "Release $VERSION" > release_notes.txt
-        fi
-
     - name: Create GitHub Release
+      if: steps.bump.outputs.skip != 'true'
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ env.VERSION }}
-        body_path: release_notes.txt
+        tag_name: v${{ steps.version.outputs.new }}
+        name: Release ${{ steps.version.outputs.new }}
+        body: |
+          PR #${{ steps.bump.outputs.pr_number }}: ${{ steps.bump.outputs.pr_title }}
         draft: false
         prerelease: false
         files: |
           ./dist/*.whl
           ./dist/*.tar.gz
-          ./dist/Pulse-${{ env.VERSION }}.dmg
+          ./dist/Pulse-${{ steps.version.outputs.new }}.dmg
