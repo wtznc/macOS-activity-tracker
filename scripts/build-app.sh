@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Build macOS App Bundle for Activity Tracker using PyInstaller
+# Build macOS App Bundle for Pulse using PyInstaller
 
 set -e
 
 # Configuration
-APP_NAME="Activity Tracker"
+APP_NAME="Pulse"
 VERSION="${VERSION:-1.0.2}"  # Use environment variable if set, otherwise default
 DIST_DIR="dist"
 
@@ -39,8 +39,8 @@ if [ ! -f "pyproject.toml" ]; then
 fi
 
 # Check if PyInstaller spec file exists
-if [ ! -f "activity-tracker.spec" ]; then
-    print_error "PyInstaller spec file not found: activity-tracker.spec"
+if [ ! -f "pulse.spec" ]; then
+    print_error "PyInstaller spec file not found: pulse.spec"
 fi
 
 print_step "Building macOS App Bundle with PyInstaller..."
@@ -76,7 +76,7 @@ pyinstaller \
     --clean \
     --noconfirm \
     --log-level=INFO \
-    activity-tracker.spec
+    pulse.spec
 
 # Verify the build
 if [ ! -d "$DIST_DIR/$APP_NAME.app" ]; then
@@ -88,7 +88,7 @@ print_step "Setting permissions..."
 chmod -R 755 "$DIST_DIR/$APP_NAME.app"
 
 # Verify the executable
-EXECUTABLE_PATH="$DIST_DIR/$APP_NAME.app/Contents/MacOS/ActivityTracker"
+EXECUTABLE_PATH="$DIST_DIR/$APP_NAME.app/Contents/MacOS/Pulse"
 if [ ! -f "$EXECUTABLE_PATH" ]; then
     print_error "Executable not found: $EXECUTABLE_PATH"
 fi
@@ -131,7 +131,7 @@ fi
 
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     print_step "Creating installer DMG..."
-    DMG_NAME="ActivityTracker-$VERSION"
+    DMG_NAME="Pulse-$VERSION"
 
     # Create temporary directory for DMG contents
     DMG_DIR="$DIST_DIR/dmg_temp"
@@ -145,17 +145,17 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 
     # Create README for DMG
     cat > "$DMG_DIR/README.txt" << 'EOF'
-Activity Tracker Installation
+Pulse Installation
 =============================
 
-1. Drag "Activity Tracker.app" to the Applications folder
-2. Launch Activity Tracker from Applications or Launchpad
+1. Drag "Pulse.app" to the Applications folder
+2. Launch Pulse from Applications or Launchpad
 3. Grant Accessibility permissions when prompted:
    - System Preferences > Security & Privacy > Privacy > Accessibility
    - Click the lock to make changes
-   - Check "Activity Tracker"
+   - Check "Pulse"
 
-For more help: https://github.com/wtznc/macOS-activity-tracker
+For more help: https://github.com/wtznc/pulse
 
 Enjoy tracking your productivity!
 EOF

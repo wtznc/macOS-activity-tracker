@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# macOS Activity Tracker - All-in-One Setup Script
+# Pulse - All-in-One Setup Script
 # Handles installation, app creation, and auto-start configuration
 
 set -e
@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 print_header() {
     echo -e "${BLUE}================================${NC}"
-    echo -e "${BLUE}  macOS Activity Tracker${NC}"
+    echo -e "${BLUE}  Pulse${NC}"
     echo -e "${BLUE}      Setup Script${NC}"
     echo -e "${BLUE}================================${NC}"
     echo
@@ -33,7 +33,7 @@ print_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo
     echo "Options:"
-    echo "  install     Install the Activity Tracker package"
+    echo "  install     Install the Pulse package"
     echo "  app         Create macOS app bundle"
     echo "  autostart   Setup auto-start on login"
     echo "  launch      Launch the menu bar app"
@@ -63,7 +63,7 @@ check_python() {
 }
 
 install_package() {
-    print_step "Installing Activity Tracker..."
+    print_step "Installing Pulse..."
 
     # Check if we're in a virtual environment
     if [[ "$VIRTUAL_ENV" != "" ]]; then
@@ -73,7 +73,7 @@ install_package() {
             pip3 install -e .
         else
             echo "Installing from GitHub..."
-            pip3 install git+https://github.com/wtznc/macOS-activity-tracker.git
+            pip3 install git+https://github.com/wtznc/pulse.git
         fi
     else
         # Create a virtual environment for installation
@@ -86,7 +86,7 @@ install_package() {
             pip3 install -e .
         else
             echo "Installing from GitHub..."
-            pip3 install git+https://github.com/wtznc/macOS-activity-tracker.git
+            pip3 install git+https://github.com/wtznc/pulse.git
         fi
 
         # Create a wrapper script that activates the venv and runs the command
@@ -97,7 +97,7 @@ install_package() {
         CURRENT_DIR="$(pwd)"
 
         # Create wrapper scripts for each command
-        for cmd in activity-tracker activity-tracker-menu activity-tracker-daemon activity-tracker-sync; do
+        for cmd in pulse pulse-menu pulse-daemon pulse-sync; do
             cat > "$INSTALL_DIR/$cmd" << EOF
 #!/bin/bash
 source "$CURRENT_DIR/.venv/bin/activate"
@@ -110,7 +110,7 @@ EOF
     fi
 
     # Verify installation
-    if command -v activity-tracker-menu &> /dev/null; then
+    if command -v pulse-menu &> /dev/null; then
         echo -e "${GREEN}[OK]${NC} Installation successful!"
     else
         print_error "Installation failed - CLI commands not found in PATH"
@@ -120,7 +120,7 @@ EOF
 create_app() {
     print_step "Creating macOS App Bundle..."
 
-    APP_NAME="Activity Tracker"
+    APP_NAME="Pulse"
     APP_DIR="$APP_NAME.app"
     CONTENTS_DIR="$APP_DIR/Contents"
     MACOS_DIR="$CONTENTS_DIR/MacOS"
@@ -142,11 +142,11 @@ create_app() {
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>ActivityTracker</string>
+    <string>Pulse</string>
     <key>CFBundleIdentifier</key>
-    <string>com.wtznc.activity-tracker</string>
+    <string>com.wtznc.pulse</string>
     <key>CFBundleName</key>
-    <string>Activity Tracker</string>
+    <string>Pulse</string>
     <key>CFBundleVersion</key>
     <string>1.0</string>
     <key>CFBundleShortVersionString</key>
@@ -164,28 +164,28 @@ create_app() {
 EOF
 
     # Create the main executable script
-    cat > "$MACOS_DIR/ActivityTracker" << EOF
+    cat > "$MACOS_DIR/Pulse" << EOF
 #!/bin/bash
-# Activity Tracker App Bundle Launcher
+# Pulse App Bundle Launcher
 
 # Get the directory where this script is located
 SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="\$(dirname "\$(dirname "\$SCRIPT_DIR")")"
 
 # Check if we have a local venv installation
-if [ -f "\$PROJECT_DIR/.venv/bin/activity-tracker-menu" ]; then
+if [ -f "\$PROJECT_DIR/.venv/bin/pulse-menu" ]; then
     source "\$PROJECT_DIR/.venv/bin/activate"
-    exec "\$PROJECT_DIR/.venv/bin/activity-tracker-menu"
-elif command -v activity-tracker-menu &> /dev/null; then
-    exec activity-tracker-menu
+    exec "\$PROJECT_DIR/.venv/bin/pulse-menu"
+elif command -v pulse-menu &> /dev/null; then
+    exec pulse-menu
 else
-    osascript -e "display dialog \"Activity Tracker not installed. Please run: ./setup.sh install\" buttons {\"OK\"} default button \"OK\""
+    osascript -e "display dialog \"Pulse not installed. Please run: ./setup.sh install\" buttons {\"OK\"} default button \"OK\""
     exit 1
 fi
 EOF
 
     # Make the executable script runnable
-    chmod +x "$MACOS_DIR/ActivityTracker"
+    chmod +x "$MACOS_DIR/Pulse"
 
     echo -e "${GREEN}[OK]${NC} App bundle created: $APP_DIR"
 }
@@ -195,15 +195,15 @@ setup_autostart() {
 
     # Determine the command to use
     CURRENT_DIR="$(pwd)"
-    if [ -f "$CURRENT_DIR/.venv/bin/activity-tracker-menu" ]; then
-        COMMAND_PATH="$HOME/.local/bin/activity-tracker-menu"
-    elif command -v activity-tracker-menu &> /dev/null; then
-        COMMAND_PATH="$(which activity-tracker-menu)"
+    if [ -f "$CURRENT_DIR/.venv/bin/pulse-menu" ]; then
+        COMMAND_PATH="$HOME/.local/bin/pulse-menu"
+    elif command -v pulse-menu &> /dev/null; then
+        COMMAND_PATH="$(which pulse-menu)"
     else
-        print_error "Activity Tracker not installed. Run 'install' first."
+        print_error "Pulse not installed. Run 'install' first."
     fi
 
-    PLIST_FILE="com.wtznc.activity-tracker.plist"
+    PLIST_FILE="com.wtznc.pulse.plist"
     LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
     PLIST_PATH="$LAUNCH_AGENTS_DIR/$PLIST_FILE"
 
@@ -217,7 +217,7 @@ setup_autostart() {
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.wtznc.activity-tracker</string>
+    <string>com.wtznc.pulse</string>
     <key>ProgramArguments</key>
     <array>
         <string>$COMMAND_PATH</string>
@@ -227,9 +227,9 @@ setup_autostart() {
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>$CURRENT_DIR/activity_tracker.log</string>
+    <string>$CURRENT_DIR/pulse.log</string>
     <key>StandardErrorPath</key>
-    <string>$CURRENT_DIR/activity_tracker_error.log</string>
+    <string>$CURRENT_DIR/pulse_error.log</string>
     <key>WorkingDirectory</key>
     <string>$CURRENT_DIR</string>
 </dict>
@@ -243,23 +243,23 @@ EOF
 }
 
 launch_app() {
-    print_step "Launching Activity Tracker..."
+    print_step "Launching Pulse..."
 
     # Determine the command to use
     CURRENT_DIR="$(pwd)"
-    if [ -f "$CURRENT_DIR/.venv/bin/activity-tracker-menu" ]; then
-        COMMAND_PATH="$HOME/.local/bin/activity-tracker-menu"
-    elif command -v activity-tracker-menu &> /dev/null; then
-        COMMAND_PATH="activity-tracker-menu"
+    if [ -f "$CURRENT_DIR/.venv/bin/pulse-menu" ]; then
+        COMMAND_PATH="$HOME/.local/bin/pulse-menu"
+    elif command -v pulse-menu &> /dev/null; then
+        COMMAND_PATH="pulse-menu"
     else
-        print_error "Activity Tracker not installed. Run 'install' first."
+        print_error "Pulse not installed. Run 'install' first."
     fi
 
     # Launch in background
     nohup "$COMMAND_PATH" > /dev/null 2>&1 &
     APP_PID=$!
 
-    echo -e "${GREEN}[OK]${NC} Activity Tracker started (PID: $APP_PID)"
+    echo -e "${GREEN}[OK]${NC} Pulse started (PID: $APP_PID)"
     echo "[INFO] Look for the menu bar icon"
 }
 
@@ -268,11 +268,11 @@ print_success() {
     echo -e "${GREEN}[SUCCESS] Setup Complete!${NC}"
     echo
     echo "[INFO] Usage:"
-    echo "   activity-tracker-menu          # Launch menu bar app"
-    echo "   activity-tracker --help        # Core tracker CLI"
-    echo "   activity-tracker-sync status   # Check sync status"
+    echo "   pulse-menu          # Launch menu bar app"
+    echo "   pulse --help        # Core tracker CLI"
+    echo "   pulse-sync status   # Check sync status"
     echo
-    echo "[INFO] Data location: ~/Library/Application Support/ActivityTracker/"
+    echo "[INFO] Data location: ~/Library/Application Support/Pulse/"
     echo "[INFO] Full documentation: README.md"
 
     # Add PATH notice if needed
@@ -300,11 +300,11 @@ case "$1" in
         ;;
     "app")
         create_app
-        echo -e "${GREEN}[OK]${NC} App bundle ready! Double-click 'Activity Tracker.app' to launch"
+        echo -e "${GREEN}[OK]${NC} App bundle ready! Double-click 'Pulse.app' to launch"
         ;;
     "autostart")
         setup_autostart
-        echo -e "${GREEN}[OK]${NC} Auto-start enabled! Activity Tracker will start on login"
+        echo -e "${GREEN}[OK]${NC} Auto-start enabled! Pulse will start on login"
         ;;
     "launch")
         launch_app
