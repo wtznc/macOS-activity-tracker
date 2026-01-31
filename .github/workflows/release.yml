@@ -66,4 +66,4 @@ jobs:
         files: |
           ./dist/*.whl
           ./dist/*.tar.gz
-          ./dist/ActivityTracker-${{ env.VERSION }}.dmg
+          ./dist/Pulse-${{ env.VERSION }}.dmg

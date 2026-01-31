@@ -31,7 +31,7 @@ test:
 	pytest
 
 test-cov:
-	pytest --cov=activity_tracker --cov-report=html --cov-report=term
+	pytest --cov=pulse --cov-report=html --cov-report=term
 
 # Code quality
 lint:

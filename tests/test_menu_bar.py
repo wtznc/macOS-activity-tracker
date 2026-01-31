@@ -53,11 +53,11 @@ sys.modules["Foundation"] = MagicMock()
 sys.modules["Foundation"].NSObject = MockNSObject
 
 # Now we can safely import the module under test
-from activity_tracker.menu_bar import ActivityTrackerMenuBarDelegate, MenuBarApp, main
+from pulse.menu_bar import MenuBarApp, PulseMenuBarDelegate, main
 
 
-class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
-    """Test cases for ActivityTrackerMenuBarDelegate."""
+class TestPulseMenuBarDelegate(unittest.TestCase):
+    """Test cases for PulseMenuBarDelegate."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -75,7 +75,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         )
 
         # Create delegate
-        self.delegate = ActivityTrackerMenuBarDelegate.alloc().init()
+        self.delegate = PulseMenuBarDelegate.alloc().init()
 
         # Reset mocks/attributes for clean state if needed
         # Since init() ran, these attributes are set from the code.
@@ -148,7 +148,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
     def test_toggle_tracking(self):
         """Test toggle tracking action."""
         # Start
-        with patch("activity_tracker.menu_bar.ActivityTracker") as mock_tracker:
+        with patch("pulse.menu_bar.Pulse") as mock_tracker:
             with patch("threading.Thread") as mock_thread:
                 self.delegate.toggleTracking_(None)
 
@@ -184,7 +184,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.tracker = MagicMock()
         old_tracker = self.delegate.tracker
 
-        with patch("activity_tracker.menu_bar.ActivityTracker") as mock_tracker_cls:
+        with patch("pulse.menu_bar.Pulse") as mock_tracker_cls:
             with patch("threading.Thread"):
                 self.delegate.toggleVerbose_(None)
 
@@ -201,14 +201,14 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.tracker = MagicMock()
         old_tracker = self.delegate.tracker
 
-        with patch("activity_tracker.menu_bar.ActivityTracker") as mock_tracker_cls:
+        with patch("pulse.menu_bar.Pulse") as mock_tracker_cls:
             with patch("threading.Thread"):
                 self.delegate.toggleFastMode_(None)
 
         self.assertTrue(self.delegate.fast_mode)
         old_tracker.stop.assert_called()
 
-    @patch("activity_tracker.menu_bar.subprocess.run")
+    @patch("pulse.menu_bar.subprocess.run")
     def test_open_data_folder(self, mock_run):
         """Test open data folder."""
         self.delegate.openDataFolder_(None)
@@ -228,7 +228,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         # terminate_ called on sharedApplication
         # NSApplication.sharedApplication().terminate_(None)
 
-    @patch("activity_tracker.menu_bar.NSAlert")
+    @patch("pulse.menu_bar.NSAlert")
     def test_sync_data_success(self, mock_alert_cls):
         """Test sync data success."""
         # Use our MockNSObject logic or MagicMock for NSAlert
@@ -249,7 +249,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         # without complex matching, but we verify it ran modal
         mock_alert.runModal.assert_called()
 
-    @patch("activity_tracker.menu_bar.NSAlert")
+    @patch("pulse.menu_bar.NSAlert")
     def test_sync_data_failure(self, mock_alert_cls):
         """Test sync data with failures."""
         mock_alert = MagicMock()
@@ -263,7 +263,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.syncData_(None)
         mock_alert.runModal.assert_called()
 
-    @patch("activity_tracker.menu_bar.NSAlert")
+    @patch("pulse.menu_bar.NSAlert")
     def test_sync_data_exception(self, mock_alert_cls):
         """Test sync data exception handling."""
         mock_alert = MagicMock()
@@ -273,7 +273,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.syncData_(None)
         mock_alert.runModal.assert_called()
 
-    @patch("activity_tracker.menu_bar.NSAlert")
+    @patch("pulse.menu_bar.NSAlert")
     def test_show_sync_status(self, mock_alert_cls):
         """Test show sync status."""
         mock_alert = MagicMock()
@@ -289,7 +289,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
         self.delegate.showSyncStatus_(None)
         mock_alert.runModal.assert_called()
 
-    @patch("activity_tracker.menu_bar.NSAlert")
+    @patch("pulse.menu_bar.NSAlert")
     def test_show_sync_status_error(self, mock_alert_cls):
         """Test show sync status error."""
         self.delegate.sync_manager.get_sync_status.side_effect = Exception("Error")
@@ -300,7 +300,7 @@ class TestActivityTrackerMenuBarDelegate(unittest.TestCase):
 class TestMenuBarApp(unittest.TestCase):
     """Test cases for MenuBarApp class."""
 
-    @patch("activity_tracker.menu_bar.ActivityTrackerMenuBarDelegate")
+    @patch("pulse.menu_bar.PulseMenuBarDelegate")
     def test_run(self, mock_delegate_cls):
         """Test app run."""
         app = MenuBarApp()
@@ -309,7 +309,7 @@ class TestMenuBarApp(unittest.TestCase):
 
         app.app.run.assert_called()
 
-    @patch("activity_tracker.menu_bar.ActivityTrackerMenuBarDelegate")
+    @patch("pulse.menu_bar.PulseMenuBarDelegate")
     def test_run_interrupt(self, mock_delegate_cls):
         """Test app run interrupt."""
         app = MenuBarApp()
@@ -329,13 +329,13 @@ class TestMenuBarApp(unittest.TestCase):
 class TestMain(unittest.TestCase):
     """Test main function."""
 
-    @patch("activity_tracker.menu_bar.MenuBarApp")
+    @patch("pulse.menu_bar.MenuBarApp")
     def test_main(self, mock_app_cls):
         """Test main."""
         main()
         mock_app_cls.return_value.run.assert_called()
 
-    @patch("activity_tracker.menu_bar.MenuBarApp")
+    @patch("pulse.menu_bar.MenuBarApp")
     def test_main_interrupt(self, mock_app_cls):
         """Test main interrupt."""
         mock_app_cls.return_value.run.side_effect = KeyboardInterrupt
@@ -343,7 +343,7 @@ class TestMain(unittest.TestCase):
             with patch("builtins.print"):
                 main()
 
-    @patch("activity_tracker.menu_bar.MenuBarApp")
+    @patch("pulse.menu_bar.MenuBarApp")
     def test_main_error(self, mock_app_cls):
         """Test main error."""
         mock_app_cls.side_effect = Exception("Setup failed")

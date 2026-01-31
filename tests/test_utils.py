@@ -12,7 +12,7 @@ class TestGetDataDirectory(unittest.TestCase):
 
     def test_returns_path_object(self):
         """Test that function returns a Path object."""
-        from activity_tracker.utils import get_data_directory
+        from pulse.utils import get_data_directory
 
         result = get_data_directory()
         self.assertIsInstance(result, Path)
@@ -20,16 +20,16 @@ class TestGetDataDirectory(unittest.TestCase):
     @patch("sys.platform", "darwin")
     def test_returns_macos_path_on_darwin(self):
         """Test macOS-specific path on darwin platform."""
-        from activity_tracker.utils import get_data_directory
+        from pulse.utils import get_data_directory
 
         result = get_data_directory()
         self.assertIn("Library", str(result))
         self.assertIn("Application Support", str(result))
-        self.assertIn("ActivityTracker", str(result))
+        self.assertIn("Pulse", str(result))
 
     def test_directory_exists_after_call(self):
         """Test that directory is created if it doesn't exist."""
-        from activity_tracker.utils import get_data_directory
+        from pulse.utils import get_data_directory
 
         result = get_data_directory()
         self.assertTrue(result.exists())
@@ -56,7 +56,7 @@ class TestViewActivityFile(unittest.TestCase):
         with open(filepath, "w") as f:
             json.dump(test_data, f)
 
-        from activity_tracker.utils import view_activity_file
+        from pulse.utils import view_activity_file
 
         # Should not raise any exceptions
         with patch("builtins.print"):
@@ -69,7 +69,7 @@ class TestViewActivityFile(unittest.TestCase):
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(test_data, f, ensure_ascii=False)
 
-        from activity_tracker.utils import view_activity_file
+        from pulse.utils import view_activity_file
 
         with patch("builtins.print"):
             view_activity_file(str(filepath))
@@ -80,7 +80,7 @@ class TestViewActivityFile(unittest.TestCase):
         with open(filepath, "w") as f:
             f.write("not valid json")
 
-        from activity_tracker.utils import view_activity_file
+        from pulse.utils import view_activity_file
 
         with patch("builtins.print") as mock_print:
             view_activity_file(str(filepath))
@@ -93,7 +93,7 @@ class TestViewActivityFile(unittest.TestCase):
         """Test viewing non-existent file."""
         filepath = Path(self.temp_dir) / "nonexistent.json"
 
-        from activity_tracker.utils import view_activity_file
+        from pulse.utils import view_activity_file
 
         with patch("builtins.print"):
             # Should handle gracefully
@@ -119,7 +119,7 @@ class TestViewActivityFileParsing(unittest.TestCase):
         with open(filepath, "w") as f:
             json.dump({"App1": 30.0}, f)
 
-        from activity_tracker.utils import view_activity_file
+        from pulse.utils import view_activity_file
 
         with patch("builtins.print") as mock_print:
             view_activity_file(str(filepath))
@@ -133,7 +133,7 @@ class TestViewActivityFileParsing(unittest.TestCase):
         with open(filepath, "w") as f:
             json.dump({"App1": 30.0}, f)
 
-        from activity_tracker.utils import view_activity_file
+        from pulse.utils import view_activity_file
 
         with patch("builtins.print"):
             # Should not raise exception
@@ -145,7 +145,7 @@ class TestUtilsMain(unittest.TestCase):
 
     def test_main_shows_usage_with_no_args(self):
         """Test main shows usage when no arguments provided."""
-        from activity_tracker.utils import main
+        from pulse.utils import main
 
         with patch("sys.argv", ["utils.py"]):
             with patch("builtins.print") as mock_print:
@@ -155,7 +155,7 @@ class TestUtilsMain(unittest.TestCase):
 
     def test_main_handles_nonexistent_file(self):
         """Test main handles nonexistent file gracefully."""
-        from activity_tracker.utils import main
+        from pulse.utils import main
 
         with patch("sys.argv", ["utils.py", "/nonexistent/file.json"]):
             with patch("builtins.print") as mock_print:

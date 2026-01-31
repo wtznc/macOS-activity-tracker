@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Data storage and persistence for macOS Activity Tracker.
+Data storage and persistence for Pulse.
 Handles all file I/O operations and data management.
 """
 

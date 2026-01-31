@@ -1,4 +1,4 @@
 [flake8]
 max-line-length = 88
-exclude = venv,build,dist,.git,__pycache__,.tox,.pytest_cache,*.egg-info,activity_tracker_legacy.py
+exclude = venv,build,dist,.git,__pycache__,.tox,.pytest_cache,*.egg-info,pulse_legacy.py
 

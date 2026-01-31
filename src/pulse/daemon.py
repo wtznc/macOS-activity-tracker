@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Daemon wrapper for the activity tracker.
+Daemon wrapper for the Pulse.
 Handles running the tracker as a background service.
 """
 
@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 from typing import Optional
 
-from .core import ActivityTracker
+from .core import Pulse
 
 
 class ActivityDaemon:
@@ -23,10 +23,10 @@ class ActivityDaemon:
         if pidfile is None:
             # Use secure temporary directory
             temp_dir = Path(tempfile.gettempdir())
-            self.pidfile = str(temp_dir / "activity_tracker.pid")
+            self.pidfile = str(temp_dir / "pulse.pid")
         else:
             self.pidfile = pidfile
-        self.tracker: Optional[ActivityTracker] = None
+        self.tracker: Optional[Pulse] = None
 
     def daemonize(self):
         """Daemonize the process."""
@@ -94,7 +94,7 @@ class ActivityDaemon:
                 except OSError:
                     pass
 
-        print("Starting activity tracker daemon...")
+        print("Starting Pulse daemon...")
         self.daemonize()
 
         # Set up signal handlers
@@ -102,7 +102,7 @@ class ActivityDaemon:
         signal.signal(signal.SIGINT, self._signal_handler)
 
         # Start the tracker
-        self.tracker = ActivityTracker()
+        self.tracker = Pulse()
         self.tracker.start()
 
     def stop(self):

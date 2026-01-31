@@ -14,7 +14,7 @@ class TestConfig(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.temp_dir = tempfile.mkdtemp()
-        from activity_tracker.config import Config
+        from pulse.config import Config
 
         self.config = Config(config_dir=self.temp_dir)
 
@@ -77,7 +77,7 @@ class TestConfig(unittest.TestCase):
         self.config.save()
 
         # Create a new config instance
-        from activity_tracker.config import Config
+        from pulse.config import Config
 
         new_config = Config(config_dir=self.temp_dir)
 
@@ -120,7 +120,7 @@ class TestConfigFileHandling(unittest.TestCase):
         with open(config_file, "w") as f:
             f.write("not valid json {{{")
 
-        from activity_tracker.config import Config
+        from pulse.config import Config
 
         config = Config(config_dir=self.temp_dir)
 
@@ -136,7 +136,7 @@ class TestConfigFileHandling(unittest.TestCase):
         with open(config_file, "w") as f:
             json.dump({"idle_threshold": 600}, f)
 
-        from activity_tracker.config import Config
+        from pulse.config import Config
 
         config = Config(config_dir=self.temp_dir)
 
@@ -151,8 +151,8 @@ class TestLoadConfigFromEnv(unittest.TestCase):
 
     def test_loads_string_values(self):
         """Test loading string values from environment."""
-        with patch.dict(os.environ, {"ACTIVITY_TRACKER_ENDPOINT": "https://test.com"}):
-            from activity_tracker.config import load_config_from_env
+        with patch.dict(os.environ, {"PULSE_ENDPOINT": "https://test.com"}):
+            from pulse.config import load_config_from_env
 
             env_config = load_config_from_env()
 
@@ -160,8 +160,8 @@ class TestLoadConfigFromEnv(unittest.TestCase):
 
     def test_loads_integer_values(self):
         """Test loading integer values from environment."""
-        with patch.dict(os.environ, {"ACTIVITY_TRACKER_IDLE_THRESHOLD": "600"}):
-            from activity_tracker.config import load_config_from_env
+        with patch.dict(os.environ, {"PULSE_IDLE_THRESHOLD": "600"}):
+            from pulse.config import load_config_from_env
 
             env_config = load_config_from_env()
 
@@ -169,8 +169,8 @@ class TestLoadConfigFromEnv(unittest.TestCase):
 
     def test_loads_boolean_values(self):
         """Test loading boolean values from environment."""
-        with patch.dict(os.environ, {"ACTIVITY_TRACKER_FAST_MODE": "true"}):
-            from activity_tracker.config import load_config_from_env
+        with patch.dict(os.environ, {"PULSE_FAST_MODE": "true"}):
+            from pulse.config import load_config_from_env
 
             env_config = load_config_from_env()
 
@@ -178,11 +178,9 @@ class TestLoadConfigFromEnv(unittest.TestCase):
 
     def test_handles_invalid_integer(self):
         """Test handling of invalid integer values."""
-        with patch.dict(
-            os.environ, {"ACTIVITY_TRACKER_IDLE_THRESHOLD": "not_a_number"}
-        ):
+        with patch.dict(os.environ, {"PULSE_IDLE_THRESHOLD": "not_a_number"}):
             with patch("builtins.print"):
-                from activity_tracker.config import load_config_from_env
+                from pulse.config import load_config_from_env
 
                 env_config = load_config_from_env()
 
@@ -195,17 +193,17 @@ class TestGetConfig(unittest.TestCase):
 
     def test_returns_config_instance(self):
         """Test that get_config returns a Config instance."""
-        from activity_tracker.config import get_config
+        from pulse.config import get_config
 
         config = get_config()
 
-        from activity_tracker.config import Config
+        from pulse.config import Config
 
         self.assertIsInstance(config, Config)
 
     def test_returns_same_instance(self):
         """Test that get_config returns the same instance."""
-        from activity_tracker.config import get_config, reload_config
+        from pulse.config import get_config, reload_config
 
         # Reset global state
         reload_config()

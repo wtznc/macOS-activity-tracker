@@ -24,7 +24,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Environment (please complete the following information):**
  - macOS Version: [e.g. 14.2]
- - Activity Tracker Version: [e.g. 1.0.0]
+ - Pulse Version: [e.g. 1.0.0]
  - Python Version (if running from source): [e.g. 3.11]
 
 **Additional context**

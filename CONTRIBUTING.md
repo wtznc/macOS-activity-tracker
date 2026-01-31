@@ -1,4 +1,4 @@
-# Contributing to macOS Activity Tracker
+# Contributing to Pulse
 
 Thank you for your interest in contributing! We welcome bug reports, feature requests, and pull requests.
 
@@ -6,8 +6,8 @@ Thank you for your interest in contributing! We welcome bug reports, feature req
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/wtznc/macOS-activity-tracker.git
-    cd macOS-activity-tracker
+    git clone https://github.com/wtznc/pulse.git
+    cd pulse
     ```
 
 2.  **Install dependencies (requires Python 3.9+):**
@@ -42,7 +42,7 @@ Thank you for your interest in contributing! We welcome bug reports, feature req
 
 -   **Run the App (Dev Mode):**
     ```bash
-    python -m activity_tracker.menu_bar
+    python -m pulse.menu_bar
     ```
 
 ## Pull Request Process
@@ -55,7 +55,7 @@ Thank you for your interest in contributing! We welcome bug reports, feature req
 
 ## Reporting Bugs
 
-Please use the [Bug Report Template](https://github.com/wtznc/macOS-activity-tracker/issues) and include:
+Please use the [Bug Report Template](https://github.com/wtznc/pulse/issues) and include:
 -   macOS version
 -   Python version
 -   Steps to reproduce

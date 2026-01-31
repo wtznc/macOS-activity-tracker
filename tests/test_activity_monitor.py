@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from activity_tracker.activity_monitor import MonitorConfig
+from pulse.activity_monitor import MonitorConfig
 
 
 class TestMonitorConfig(unittest.TestCase):
@@ -43,7 +43,7 @@ class TestActivityMonitor(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.activity_monitor import ActivityMonitor
+            from pulse.activity_monitor import ActivityMonitor
 
             self.monitor = ActivityMonitor(
                 include_window_titles=True,
@@ -67,7 +67,7 @@ class TestActivityMonitor(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.activity_monitor import ActivityMonitor
+            from pulse.activity_monitor import ActivityMonitor
 
             monitor = ActivityMonitor(include_window_titles=False)
 
@@ -119,7 +119,7 @@ class TestActivityMonitorIdleTransition(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.activity_monitor import ActivityMonitor
+            from pulse.activity_monitor import ActivityMonitor
 
             self.monitor = ActivityMonitor(idle_threshold=300)
 
@@ -216,7 +216,7 @@ class TestActivityMonitorAppChange(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.activity_monitor import ActivityMonitor
+            from pulse.activity_monitor import ActivityMonitor
 
             self.monitor = ActivityMonitor(
                 include_window_titles=False,
@@ -278,7 +278,7 @@ class TestActivityLogger(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.activity_monitor import ActivityLogger
+            from pulse.activity_monitor import ActivityLogger
 
             self.logger = ActivityLogger(verbose=True)
 
@@ -295,7 +295,7 @@ class TestActivityLogger(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.activity_monitor import ActivityLogger
+            from pulse.activity_monitor import ActivityLogger
 
             logger = ActivityLogger(verbose=False)
         self.assertFalse(logger.verbose)
@@ -316,7 +316,7 @@ class TestActivityLogger(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.activity_monitor import ActivityLogger
+            from pulse.activity_monitor import ActivityLogger
 
             logger = ActivityLogger(verbose=False)
 

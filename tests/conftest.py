@@ -47,7 +47,7 @@ def sample_hour_data():
             "total_time": 3600.0,
             "files_processed": 60,
         },
-        "source": "macos-activity-tracker",
+        "source": "macos-pulse",
         "version": "1.0.0",
     }
 
@@ -64,7 +64,7 @@ def mock_macos_apps():
         {
             "name": "Safari",
             "bundle_id": "com.apple.Safari",
-            "window_title": "GitHub - Activity Tracker",
+            "window_title": "GitHub - Pulse",
         },
         {
             "name": "iTerm2",

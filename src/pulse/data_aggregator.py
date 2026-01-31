@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Data aggregation for Activity Tracker sync functionality.
+Data aggregation for Pulse sync functionality.
 Handles grouping and processing of activity data files.
 """
 

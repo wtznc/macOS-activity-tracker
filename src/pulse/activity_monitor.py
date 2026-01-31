@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Activity monitoring core logic for macOS Activity Tracker.
+Activity monitoring core logic for Pulse.
 Orchestrates detection, idle checking, and data recording.
 """
 

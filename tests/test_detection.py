@@ -19,11 +19,11 @@ class TestApplicationDetector(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.detection import ApplicationDetector
+            from pulse.detection import ApplicationDetector
 
             self.detector = ApplicationDetector()
 
-    @patch("activity_tracker.detection.NSWorkspace")
+    @patch("pulse.detection.NSWorkspace")
     def test_get_active_application_returns_name(self, mock_workspace_class):
         """Test that get_active_application returns app name."""
         mock_workspace = Mock()
@@ -34,7 +34,7 @@ class TestApplicationDetector(unittest.TestCase):
 
         self.assertEqual(result, "Safari")
 
-    @patch("activity_tracker.detection.NSWorkspace")
+    @patch("pulse.detection.NSWorkspace")
     def test_get_active_application_returns_none_when_no_app(
         self, mock_workspace_class
     ):
@@ -47,7 +47,7 @@ class TestApplicationDetector(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    @patch("activity_tracker.detection.NSWorkspace")
+    @patch("pulse.detection.NSWorkspace")
     def test_get_active_application_handles_exception(self, mock_workspace_class):
         """Test that get_active_application handles exceptions gracefully."""
         mock_workspace_class.sharedWorkspace.side_effect = RuntimeError("Test error")
@@ -69,7 +69,7 @@ class TestWindowTitleDetector(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.detection import WindowTitleDetector
+            from pulse.detection import WindowTitleDetector
 
             self.detector = WindowTitleDetector(cache_ttl=2.0, applescript_timeout=0.5)
 
@@ -90,7 +90,7 @@ class TestWindowTitleDetector(unittest.TestCase):
     def test_cache_functionality(self):
         """Test window title caching."""
         app_name = "Safari"
-        title = "GitHub - Activity Tracker"
+        title = "GitHub - Pulse"
 
         # Update cache
         self.detector._update_cache(app_name, title)
@@ -108,7 +108,7 @@ class TestWindowTitleDetector(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.detection import WindowTitleDetector
+            from pulse.detection import WindowTitleDetector
 
             app_name = "Safari"
             title = "GitHub"
@@ -126,7 +126,7 @@ class TestWindowTitleDetector(unittest.TestCase):
             # Should return None after expiration
             self.assertIsNone(detector._get_from_cache(app_name))
 
-    @patch("activity_tracker.detection.subprocess.run")
+    @patch("pulse.detection.subprocess.run")
     def test_get_title_via_applescript_returns_title(self, mock_run):
         """Test AppleScript window title detection."""
         mock_run.return_value = Mock(returncode=0, stdout="Test Window Title\n")
@@ -135,7 +135,7 @@ class TestWindowTitleDetector(unittest.TestCase):
 
         self.assertEqual(result, "Test Window Title")
 
-    @patch("activity_tracker.detection.subprocess.run")
+    @patch("pulse.detection.subprocess.run")
     def test_applescript_timeout_setting(self, mock_run):
         """Test that AppleScript uses the configured timeout."""
         mock_result = Mock()
@@ -151,7 +151,7 @@ class TestWindowTitleDetector(unittest.TestCase):
         self.assertEqual(call_kwargs["timeout"], 0.5)
         self.assertEqual(title, "Test Window")
 
-    @patch("activity_tracker.detection.subprocess.run")
+    @patch("pulse.detection.subprocess.run")
     def test_get_title_via_applescript_handles_timeout(self, mock_run):
         """Test AppleScript timeout handling."""
         mock_run.side_effect = subprocess.TimeoutExpired("osascript", 0.5)
@@ -160,7 +160,7 @@ class TestWindowTitleDetector(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    @patch("activity_tracker.detection.subprocess.run")
+    @patch("pulse.detection.subprocess.run")
     def test_get_title_via_applescript_handles_empty_output(self, mock_run):
         """Test AppleScript empty output handling."""
         mock_run.return_value = Mock(returncode=0, stdout="")
@@ -169,7 +169,7 @@ class TestWindowTitleDetector(unittest.TestCase):
 
         self.assertIsNone(result)
 
-    @patch("activity_tracker.detection.subprocess.run")
+    @patch("pulse.detection.subprocess.run")
     def test_metrics_tracking(self, mock_run):
         """Test performance metrics are tracked correctly."""
         mock_result = Mock()
@@ -186,7 +186,7 @@ class TestWindowTitleDetector(unittest.TestCase):
         self.assertGreater(metrics["applescript_total_time"], 0)
         self.assertGreater(metrics["avg_applescript_time"], 0)
 
-    @patch("activity_tracker.detection.subprocess.run")
+    @patch("pulse.detection.subprocess.run")
     def test_timeout_metrics(self, mock_run):
         """Test timeout metrics are recorded."""
         mock_run.side_effect = subprocess.TimeoutExpired("osascript", 0.5)
@@ -198,8 +198,8 @@ class TestWindowTitleDetector(unittest.TestCase):
         metrics = self.detector.get_metrics()
         self.assertEqual(metrics["applescript_timeouts"], 1)
 
-    @patch("activity_tracker.detection.subprocess.run")
-    @patch("activity_tracker.detection.CGWindowListCopyWindowInfo")
+    @patch("pulse.detection.subprocess.run")
+    @patch("pulse.detection.CGWindowListCopyWindowInfo")
     def test_fallback_to_quartz_on_timeout(self, mock_quartz, mock_run):
         """Test that Quartz is used as fallback when AppleScript times out."""
         # Make AppleScript timeout
@@ -222,7 +222,7 @@ class TestWindowTitleDetector(unittest.TestCase):
         self.assertEqual(metrics["applescript_timeouts"], 1)
         self.assertEqual(metrics["quartz_fallbacks"], 1)
 
-    @patch("activity_tracker.detection.subprocess.run")
+    @patch("pulse.detection.subprocess.run")
     def test_cache_hit_metrics(self, mock_run):
         """Test that cache hits are tracked in metrics."""
         mock_result = Mock()
@@ -259,8 +259,8 @@ class TestWindowTitleDetector(unittest.TestCase):
         self.assertEqual(metrics["cache_hits"], 0)
         self.assertEqual(metrics["applescript_total_time"], 0.0)
 
-    @patch("activity_tracker.detection.subprocess.run")
-    @patch("activity_tracker.detection.CGWindowListCopyWindowInfo")
+    @patch("pulse.detection.subprocess.run")
+    @patch("pulse.detection.CGWindowListCopyWindowInfo")
     def test_vscode_special_handling(self, mock_quartz, mock_run):
         """Test special handling for VS Code with empty window title."""
         # Make AppleScript fail
@@ -289,7 +289,7 @@ class TestWindowTitleDetector(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.detection import WindowTitleDetector
+            from pulse.detection import WindowTitleDetector
 
             custom_detector = WindowTitleDetector(
                 cache_ttl=5.0, applescript_timeout=1.0
@@ -306,7 +306,7 @@ class TestWindowTitleDetector(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.detection import WindowTitleDetector
+            from pulse.detection import WindowTitleDetector
 
             # Default timeout should be 0.5s
             default_detector = WindowTitleDetector()
@@ -328,7 +328,7 @@ class TestIdleDetector(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.detection import IdleDetector
+            from pulse.detection import IdleDetector
 
             self.detector = IdleDetector(idle_threshold=300)
 
@@ -338,7 +338,7 @@ class TestIdleDetector(unittest.TestCase):
         self.assertFalse(self.detector.is_idle)
         self.assertIsNone(self.detector.idle_start_time)
 
-    @patch("activity_tracker.detection.CGEventSourceSecondsSinceLastEventType")
+    @patch("pulse.detection.CGEventSourceSecondsSinceLastEventType")
     def test_get_system_idle_time(self, mock_cg_event):
         """Test getting system idle time."""
         mock_cg_event.return_value = 150.5
@@ -347,7 +347,7 @@ class TestIdleDetector(unittest.TestCase):
 
         self.assertEqual(result, 150.5)
 
-    @patch("activity_tracker.detection.CGEventSourceSecondsSinceLastEventType")
+    @patch("pulse.detection.CGEventSourceSecondsSinceLastEventType")
     def test_check_idle_state_becomes_idle(self, mock_cg_event):
         """Test idle state transition to idle."""
         mock_cg_event.return_value = 400  # Above 300 threshold
@@ -358,7 +358,7 @@ class TestIdleDetector(unittest.TestCase):
         self.assertTrue(changed)
         self.assertTrue(self.detector.is_idle)
 
-    @patch("activity_tracker.detection.CGEventSourceSecondsSinceLastEventType")
+    @patch("pulse.detection.CGEventSourceSecondsSinceLastEventType")
     def test_check_idle_state_becomes_active(self, mock_cg_event):
         """Test idle state transition to active."""
         mock_cg_event.return_value = 5  # Below 300 threshold
@@ -369,7 +369,7 @@ class TestIdleDetector(unittest.TestCase):
         self.assertTrue(changed)
         self.assertFalse(self.detector.is_idle)
 
-    @patch("activity_tracker.detection.CGEventSourceSecondsSinceLastEventType")
+    @patch("pulse.detection.CGEventSourceSecondsSinceLastEventType")
     def test_check_idle_state_no_change_when_still_active(self, mock_cg_event):
         """Test no change when remaining active."""
         mock_cg_event.return_value = 100  # Below threshold
@@ -393,7 +393,7 @@ class TestTitleCleaner(unittest.TestCase):
                 "Quartz": MagicMock(),
             },
         ):
-            from activity_tracker.detection import TitleCleaner
+            from pulse.detection import TitleCleaner
 
             self.cleaner = TitleCleaner()
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Main entry point for the activity tracker module.
-This allows running the module with: python -m activity_tracker
+Main entry point for the Pulse module.
+This allows running the module with: python -m pulse
 """
 
 import sys
@@ -14,7 +14,7 @@ if str(current_dir) not in sys.path:
 
 # Import using absolute import for PyInstaller compatibility
 try:
-    from activity_tracker.menu_bar import main
+    from pulse.menu_bar import main
 except ImportError:
     # Fallback for relative import when running as module
     from .menu_bar import main
