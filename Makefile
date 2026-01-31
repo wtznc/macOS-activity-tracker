@@ -1,4 +1,4 @@
-.PHONY: help install install-dev install-build test test-cov lint format clean build release app
+.PHONY: help install install-dev install-build test test-cov lint format clean build app
 
 # Default target
 help:
@@ -12,7 +12,6 @@ help:
 	@echo "  format         Format code with black and isort"
 	@echo "  clean          Clean build artifacts"
 	@echo "  build          Build package"
-	@echo "  release        Build and release package"
 	@echo "  app            Build macOS app bundle with PyInstaller"
 
 # Installation
@@ -60,9 +59,6 @@ clean:
 
 build: clean
 	python -m build
-
-release: build
-	python -m twine upload dist/*
 
 # macOS app bundle
 app:
