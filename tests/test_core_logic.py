@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-from pulse.core import TARGET_MINUTE_SECONDS, Pulse
+from pulse.core import Pulse
 
 
 class TestPulseLogic(unittest.TestCase):
