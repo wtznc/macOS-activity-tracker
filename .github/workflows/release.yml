@@ -28,7 +28,7 @@ jobs:
 
     - name: Find merged PR and determine bump type
       id: bump
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         script: |
           const commits = await github.rest.repos.listPullRequestsAssociatedWithCommit({
