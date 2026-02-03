@@ -12,7 +12,7 @@ for macOS systems with features including:
 - VS Code integration with file-level tracking
 """
 
-__version__ = "1.0.15"
+__version__ = "1.0.16"
 __author__ = "Wojciech Tyziniec"
 __license__ = "MIT"
 
